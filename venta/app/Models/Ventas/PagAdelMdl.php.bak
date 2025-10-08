@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Models\Ventas;
+
+use CodeIgniter\Model;
+
+class PagAdelMdl extends Model
+{
+    protected $table = 'vtpagosadelantados';
+
+    protected $allowedFields = [
+        'nIdCliente', 'nImporte',
+        'sObservaciones', 'nIdSucursal', 'nIdVentaFacturada',
+        'nIdTipoPago'
+    ];
+
+    protected $primaryKey = 'nIdPagosAdelantados';
+
+    protected $useTimestamps = true;
+
+    protected $useSoftDeletes = false;
+
+    protected $createdField = 'dtAlta';
+
+    protected $deletedField = '';
+
+    protected $updatedField = '';
+
+    protected $table_cliente = 'vtcliente';
+
+    public function getRegistros($id = false, $paginado = false, $idSuc = false)
+    {
+        $this->select('vtpagosadelantados.*, b.sNombre as nomCli, ' .
+            'DATE_FORMAT(vtpagosadelantados.dtAlta, \'%d-%m-%Y\' ) as fecha')
+            ->join('vtcliente as b', 'b.nIdCliente = vtpagosadelantados.nIdCliente')
+            ->orderBy('nIdPagosAdelantados', 'DESC');
+        if ($id === false) {
+            if ($idSuc !== false) {
+                $this->where(['nIdSucursal' => intval($idSuc)]);
+            }
+            if ($paginado) {
+                return $this->paginate(10);
+            } else {
+                return $this->findAll();
+            }
+        }
+        return $this->where(['nIdPagosAdelantados' => $id])->first();
+    }
+}
+/*
+CREATE TABLE IF NOT EXISTS `vtpagosadelantados` (
+  `nIdPagosAdelantados` INT NOT NULL AUTO_INCREMENT,
+  `nIdCliente` INT NULL,
+  `nImporte` DECIMAL(10,2) NULL,
+  `sObservaciones` VARCHAR(250) NULL,
+  `dtAlta` DATETIME NULL,
+  PRIMARY KEY (`nIdPagosAdelantados`))
+*/

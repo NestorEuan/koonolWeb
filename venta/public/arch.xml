@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd" Version="4.0" Serie="V" Folio="2" Fecha="2023-02-11T13:06:19" Sello="@" FormaPago="28" NoCertificado="30001000000400002335" Certificado="@" SubTotal="159.83" Descuento="0.00" Moneda="MXN" Total="185.40" TipoDeComprobante="I" Exportacion="01" MetodoPago="PUE" LugarExpedicion="97430">
+  <cfdi:Emisor Rfc="FMO131114PT6" Nombre="FERROMAT MOTUL SA DE CV" RegimenFiscal="601"/>
+  <cfdi:Receptor Rfc="XAXX010101000" Nombre="Publico en general" DomicilioFiscalReceptor="97000" RegimenFiscalReceptor="616" UsoCFDI="G03"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto ClaveProdServ="30103623" NoIdentificacion="28" Cantidad="1.000" ClaveUnidad="H87" Unidad="PZA" Descripcion="ARMEX-10-10-4 6mts." ValorUnitario="159.827586" Importe="159.827586" Descuento="0.00" ObjetoImp="02">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado Base="159.827586" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="25.572414"/>
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="25.57">
+    <cfdi:Traslados>
+      <cfdi:Traslado Base="159.83" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="25.57"/>
+    </cfdi:Traslados>
+  </cfdi:Impuestos>
+</cfdi:Comprobante>
