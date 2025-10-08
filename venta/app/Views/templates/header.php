@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" style="height:100%;">
+<html lang="es" style="height:100%;">
 
 <head>
     <meta charset="utf-8">
@@ -7,34 +7,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title><?= $aInfoSis['nomempresa'] ?></title>
+    
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="<?= base_url() ?>/assets/img/<?= $aInfoSis['icono'] ?>" />
 
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"> -->
-
-
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="<?= base_url() ?>/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="<?= base_url() ?>/assets/css/bootstrap-icons.css">
     <link rel="stylesheet" href="<?= base_url() ?>/assets/js/themes/default/style.min.css">
+    
+    <!-- CSS Principal del Sistema -->
+    <link rel="stylesheet" href="<?= base_url();?>/assets/css/main.css">
 
-    <script src="<?= base_url() ?>/assets/js/jquery.js"> </script>
-    <script src="<?= base_url() ?>/assets/js/bootstrap.bundle.min.js"> </script>
-    <script src="<?= base_url() ?>/assets/js/jstree.js"> </script>
-
-    <!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script> -->
+    <!-- jQuery y Bootstrap JS -->
+    <script src="<?= base_url() ?>/assets/js/jquery.js"></script>
+    <script src="<?= base_url() ?>/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="<?= base_url() ?>/assets/js/jstree.js"></script>
 
     <script>
         const baseURL = '<?= base_url() ?>';
         let miGlobal = {
-            nomSucursal: '',
+            nomSucursal: '<?= $sucursal ?? '' ?>',
             entregaCampo: null,
+            
             dameMenu: function(e) {
                 $("#mainMenu ul.navbar-nav > li.nav-item > ul.dropdown-menu li > a").on("click", function() {
                     miGlobal.toggleBlockPantalla('Cargando ' + $(this).text() + ' ...');
                 });
             },
+            
             valNumero: function(e, obj, op) {
                 op = op || {};
                 if (op.propValorAnterior == undefined) op.propValorAnterior = 'cantAnt';
@@ -49,11 +50,10 @@
                             let n = parseInt(e.target.value.trim());
                             if (op.decimal != undefined) {
                                 op.decimal = Math.pow(10, op.decimal);
-                                n = Math.round(parseFloat(e.target.value.trim()) * op.decimal) / op.decimal; // con redondeo a 2 decimales
+                                n = Math.round(parseFloat(e.target.value.trim()) * op.decimal) / op.decimal;
                             }
                             if (n >= op.min && n <= op.max) {
                                 if (!op.validacionEnBlur) obj[op.propValorAnterior] = e.target.value.trim();
-
                             } else {
                                 e.target.value = obj[op.propValorAnterior];
                             }
@@ -65,7 +65,6 @@
                     }
                 } else {
                     if (!op.validacionEnBlur) obj[op.propValorAnterior] = '';
-                    // obj[op.propValorAnterior] = '';
                 }
             },
 
@@ -75,7 +74,7 @@
                     idParent = mensaje;
                     bndQuitar = true;
                 } else {
-                    idParent = idParent ?? ''; // es el de por defecto
+                    idParent = idParent ?? '';
                 }
                 idParent = '#' + idParent + 'wAlert .alert';
                 tiempoDespliegue = tiempoDespliegue ?? 500;
@@ -96,12 +95,10 @@
             },
 
             toggleBlockPantalla: function(msj) {
-                let je = $('#blockGral');
-                je.find('span').html(msj ?? '');
-                je.toggleClass('d-none');
-                je.focus();
-                je.click();
+                // Usar Skeleton Loading (Opción C)
+                SPALoader.showSkeleton(msj);
             },
+            
             agregaCamposHidden: function(sSelector, sFormDestino) {
                 let oF = $(sFormDestino);
                 $(sSelector).each((i, el) => {
@@ -116,17 +113,85 @@
 
 </head>
 
-<body style="height:100%;">
-    <header class="bg-info border-bottom border-secondary d-print-none" style="height:57px;">
-        <?php
-        echo view('templates/navbar');
-        ?>
-    </header>
-    <div id="blockGral" class="d-none" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:2000;">
-        <div class="d-flex justify-content-center align-items-center h-100" style="background-color:black;opacity:0.5;">
-            <div class="spinner-border text-light" role="status"></div>
-            <span class="text-light ms-3"></span>
+<body>
+
+<div class="app-container">
+    
+    <!-- HEADER SUPERIOR -->
+    <header class="app-header">
+        <div class="header-left">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="bi bi-list" style="font-size: 1.5rem;"></i>
+            </button>
+            
+            <div class="header-brand">
+                <img src="<?= base_url()?>/assets/img/<?= $aInfoSis['bannernavbrand'] ?>" alt="Logo">
+                <span class="header-brand-text"><?= $aInfoSis['nomempresa'] ?></span>
+            </div>
         </div>
-    </div>
-    <div class="container overflow-auto" style="height:calc(100% - 121px);" id="mainCnt">
-        <div class="row">
+
+        <div class="header-right">
+            <div class="header-sucursal">
+                <i class="bi bi-building me-2"></i>
+                <span><?= $sucursal ?? 'Sucursal' ?></span>
+            </div>
+
+            <div class="header-clock" id="headerClock">00:00:00</div>
+
+            <div class="header-user" id="headerUser">
+                <div class="user-avatar">
+                    <?= strtoupper(substr($slogin ?? 'U', 0, 1)) ?>
+                </div>
+                <span class="user-name"><?= $slogin ?? 'Usuario' ?></span>
+                <i class="bi bi-chevron-down ms-2"></i>
+            </div>
+
+            <div class="user-dropdown" id="userDropdown">
+                <a href="<?= base_url('usuario/changepasswd/logeado/' . ($nIdUsuario ?? '')) ?>">
+                    <i class="bi bi-key me-2"></i>
+                    Cambiar Contraseña
+                </a>
+                <a href="<?= base_url('login') ?>">
+                    <i class="bi bi-box-arrow-right me-2"></i>
+                    Cerrar Sesión
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ÁREA PRINCIPAL CON SIDEBAR Y CONTENIDO -->
+    <div class="app-main">
+        
+        <!-- SIDEBAR NAVEGACIÓN -->
+        <aside class="app-sidebar" id="appSidebar">
+            <nav class="sidebar-menu" id="sidebarMenu">
+                <?php 
+                    // CAMBIO CRÍTICO: Incluir navbar.php que renderiza el menú
+                    echo view('templates/navbar');
+                ?>
+            </nav>
+        </aside>
+
+        <!-- Overlay para mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- ÁREA DE CONTENIDO -->
+        <main class="app-content" id="appContent">
+            <!-- Skeleton Loader (Opción C - ACTIVA) -->
+            <div class="skeleton-loader" id="skeletonLoader">
+                <div class="skeleton-card">
+                    <div class="skeleton-header"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                </div>
+                <div class="skeleton-card">
+                    <div class="skeleton-header"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                </div>
+            </div>
+
+            <!-- Contenido dinámico -->
+            <div class="content-wrapper" id="contentWrapper">

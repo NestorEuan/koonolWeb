@@ -1,0 +1,48 @@
+2025-10-08
+4.
+Estamos mal. Algo salió muy mal.
+Fue mi culpa por que desde el principio no te di los archivos necesarios. Porque pensé que no los necesitarias. 
+Puesto que te pedí que modificaras la interfaz UX/UI de los archivos.
+Sin embargo te adelantaste en suponer que el menú no existia.
+Quedó peor el asunto pues ya no visualizo el menú
+Antes de modifcar nada necesito que nos coordinemos. Para que quede bien de una vez sin tanta confusión. Lo primero que haré es adjuntarte archivos, de los cuales me diras cual te hace falta. Y recuerda que debes modificar lo que menos impacte en todo el entorno CodeIgniter
+MenuMdl.php genera la consulta en la tabla de opciones del sistema para generar el menú (Para no complicar el cambio, vamos a omitir iconos por el momento)
+BaseControler.php se encarga de cargar el menú en el login
+NavBar.php Se encarga de presentar el menú dentro del contenedor
+Main.php carga la vista principal
+Que otro codigo necesitaS?
+
+3.
+Mi error fue no recordarte que estamos en el framework CodeIgniter, por lo que navbar.php se forma con el controlador de CodeIgniter.
+Te voy a adjuntar el modelo donde se crea la estructura del menu. 
+Segun el prompt anterior,  modifica la función buildMenu y recorreArbol para que pueda funcionar según y navbar 
+Considera que el menú el punto 2. Adaptar tu menú actual ya no debe ser valido.
+Considera entregarme solo las partes que tenga que modificar, y en el caso que aplique el código completo.
+Si no está clara mi petición puedes preguntar.
+(Se agrega el archivo navbar.php y MenuMdl.php)
+
+2.
+Lo siguiente que te pediré es un más complejo.
+La idea del desktop es que sea singlepage application, con una barra de navegación a la izquierda que sea plegable y un contenedor de contenido.
+Te adjunto los archivos actuales.
+La encomienda es la misma. Quiero que con el apoyo de expertos en diseño UX/UI me crees un diseño moderno, minimalista y responsivo para la vista desktop. Que sea singlepage aplicacion.
+Crea un archivo de estilos main.css que se encargue de darle estilo a la barra de navegación y el contenedor de contenido.
+También moderniza el mensaje que aparece mientras se carga la vista.
+Cualquier duda que tengas para proceder consultame.
+
+1.
+Eres un equipo multidisciplinario de desarrollo de aplicaciones WEB. Conformado por expertos en PHP, Javascript, HTML, CSS, MySQL, Bootstrap, JQuery, Ajax, JqueryUI. Cuentas con expertos en diseño UX/UI. Tienes experiencia en el uso del framework CodeIgniter, implementando bootstrap, Javascript. 
+Te voy a adjuntar un github con dos proyectos de punto de venta. El proyecto venta y el proyecto ker. Está desarrollado con CodeIgniter y Bootstrap.
+La carpeta ker está basada en la carpeta venta, sin embargo la operación de cada empresa ocasiono que el código se fuera diferenciando, además de que cada proyecto está desarrollado con versiones diferentes de Codeigniter. Aunque existen procesos similares.
+Quiero que me ayudes a hacer una "fusión de código" para mantener una sola versión del código de ambas aplicaciones.
+No te adelantes a programar o modificar nada. Te lo voy a ir pidiendo poco a poco.
+Vamos a empezar con algo sencillo, primero quiero que te fijes que tenemos plantillas de header (y headerlogin) y footer.
+Lo primero es que quiero que me hagas un cambio en la vista del login. Quiero que me crees un archivo css para los estilos del sistema.
+Quiero que con el apoyo de expertos en diseño UX/UI me crees un diseño moderno, minimalista y responsivo para la vista del login.
+Elimina las imagenes de canaco, coparmex y hechoenyuc.
+Manten el reloj pero cambialo de acuerdo al estilo que vas a crear.
+
+
+Te voy a explicar por el momento los procesos de inventario:
+Entradas, salidas y traspasos.
+En ambas empresas se mantiene el mismo proceso de inventario. Es lo puedes comprobar con los controladores en la carpeta almacen de cada aplicacion.

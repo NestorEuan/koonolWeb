@@ -1,42 +1,51 @@
 <?php
-  if( !isset($nIdUsuario) )
-    $nIdUsuario = null;
-?>
-<script>
-  miGlobal.nomSucursal = '<?= $sucursal ?? '' ?>';
-</script>
-<nav class="navbar navbar-expand-lg navbar-light bg-light position-relative" id="mainMenu" style="z-index:2;">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="<?= base_url()?>/desktop">
-        <img src="<?= base_url()?>/assets/img/<?= $aInfoSis['bannernavbrand'] ?>" alt="" width="30" height="24" class="d-inline-block align-text-top">
-        <?= $aInfoSis['nomempresa'] ?>
-    </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <?php 
-          if(isset($navbar))
-          {
-            echo $navbar;
-          }
+/**
+ * NAVBAR PARA SIDEBAR CON ACORDEÓN
+ * Versión para CodeIgniter con MenuMdl
+ * 
+ * El array $menuItems es generado por MenuMdl::buildMenu()
+ */
 
-        ?>
-      </ul>
-      <span class="col-sm d-lg-none col-xl navbar-text fw-bold overflow-hidden text-nowrap me-auto" style="color:rgb(232, 87, 55);"><?= $sucursal ?? '' ?></span>
-      <ul class="navbar-nav">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <?= $slogin ?? 'Usuario no registrado'?>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
-            <li><a class="dropdown-item" href="<?php echo base_url('usuario/changepasswd/logeado/' . $nIdUsuario ?? ''); ?>">Reiniciar contraseña</a></li>
-            <li><a class="dropdown-item" href="<?= base_url('login')?>">Salir</a></li>
-          </ul>
-        </li>
-      </ul>
-
+// Verificar que existe el array de menú
+if (!isset($menuItems) || !is_array($menuItems) || empty($menuItems)):
+    // Si no hay menú, mostrar mensaje
+    ?>
+    <div class="menu-item">
+        <div class="text-center p-3 text-light">
+            <small>No hay menú disponible</small>
+        </div>
     </div>
-  </div>
-</nav>
+    <?php
+    return;
+endif;
+
+// Renderizar menú
+?>
+
+<?php foreach ($menuItems as $item): ?>
+    <div class="menu-item">
+        <?php if (isset($item['submenu']) && is_array($item['submenu'])): ?>
+            <!-- Menú con submenú (accordion) -->
+            <a href="#" class="menu-header">
+                <i class="menu-icon bi <?= $item['icon'] ?? 'bi-circle' ?>"></i>
+                <span class="menu-text"><?= $item['text'] ?></span>
+                <i class="menu-arrow bi bi-chevron-down ms-auto"></i>
+            </a>
+            
+            <div class="submenu">
+                <?php foreach ($item['submenu'] as $subitem): ?>
+                    <a href="<?= base_url($subitem['url']) ?>" class="submenu-item">
+                        <i class="bi bi-chevron-right me-2"></i>
+                        <?= $subitem['text'] ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <!-- Menú sin submenú (enlace directo) -->
+            <a href="<?= base_url($item['url']) ?>" class="menu-header" data-url="<?= $item['url'] ?>">
+                <i class="menu-icon bi <?= $item['icon'] ?? 'bi-circle' ?>"></i>
+                <span class="menu-text"><?= $item['text'] ?></span>
+            </a>
+        <?php endif; ?>
+    </div>
+<?php endforeach; ?>
