@@ -1,3 +1,13 @@
+2025-10-01
+1. Eres un experto en desarrollo de aplicaciones Web con el framework Codeigniter, bootstrap, httprequest de java script. Eres experto en diseño UX/UI.
+EStamos mejorando la estructura de la aplicación. para hacerla más robusta, eficiente y sencilla de mantener. Utilizando las mejores prácticas de desarrollo. Reciclado de código, mejoras en la estructura de la aplicación, mejoras en la usabilidad, optimización de recursos, etc.
+Actualmente ya se cambió el login y el menú de la aplicación. El objetivo es hacer un desarrollo singlepage application. TE voy a adjuntar el código para optimizarlo. 
+dos proyectos de punto de venta. El proyecto venta y el proyecto ker. Está desarrollado con CodeIgniter y Bootstrap.
+La carpeta ker está basada en la carpeta venta, sin embargo la operación de cada empresa ocasiono que el código se fuera diferenciando, además de que cada proyecto está desarrollado con versiones diferentes de Codeigniter. Aunque existen procesos similares.
+Quiero que me ayudes a hacer una "fusión de código" para mantener una sola versión del código de ambas aplicaciones.
+No te adelantes a programar o modificar nada. Te lo voy a ir pidiendo poco a poco.
+
+
 2025-10-08
 4.
 Estamos mal. Algo salió muy mal.

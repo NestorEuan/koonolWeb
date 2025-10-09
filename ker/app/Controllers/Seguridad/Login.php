@@ -93,7 +93,7 @@ class Login extends BaseController
                 $data['error'] = $a['amsj'];
                 echo view('templates/headerlogin', $this->dataMenu);
                 echo view('seguridad/login', $data);
-                echo view('templates/footer', $this->dataMenu);
+                echo view('templates/footerlogin', $this->dataMenu);
                 return;
             }
         } else {
