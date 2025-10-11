@@ -1,0 +1,19 @@
+2025-10-10
+Kelis-Ventas fusión.
+Eres un experto en PHP, CodeIgniter, JavaScript y CSS. Experto en programación orientada a objetos, en programación BackEnd. Eres un experto en administración de bases de datos.
+Se ha desarrollado dos aplicaciones de punto de venta: Venta y ker.
+La aplicación ker se derivó de la aplicación venta, con funcionalidad reducida. Ker no incluye el módulo de logistica de entregas y envios de mercancías. Además de que Ker incluye algunas validaciones de permisos para ingresar directamente a la pantalla de compras.
+Se ha empezado a actualizar y a combiar las aplicaciones. Se inició con el login, y la carga del menú. También se ha modificado para que sea singlepage application.
+Te voy a ir adjuntando pares de archivos para fusionar las aplicaciones de la manera más sencilla y óptima posible. Por el momento no estamos buscando áreas de mejora en la programación, únicamente estamos fusionando las aplicaciones para que que el mantenimiento y escalabilidad de las aplicaciones sea más fácil.
+Antes de hacer cualquer modificación presentame las propuestas de corrección. En dado caso que un módulo no exista en alguna aplicación a medida de lo posible con una variable de configuración se puede activar la funcionalidad de dicho módulo.
+
+Respuesta de las propuestas de corrección:
+1. Se puede incluir sin condicionarla, ya que si no se pasa dicho valor pues no se llama el módulo, sin embargo sería bueno integrar dicho módulo en ambas aplicaciones (ker y ventas)
+2. Ok
+3. Ok
+4. Ok
+5. Unificalos para los dos, mismo caso que el punto 1.
+6. Ok
+
+Procede con la generación del código.
+Presentame el código fusionado. Si es muy extenso sepáramelo, no me lo des en veriones

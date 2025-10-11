@@ -78,15 +78,15 @@ abstract class BaseController extends Controller
             $this->dataMenu['aInfoSis'] = $this->aInfoSis;
         } else {
             $menubuilder = new \App\Models\Seguridad\MenuMdl();
-            $this->aPermiso = $menubuilder->buildMenu(0, $this->nIdUsuario);
+            $resultado = $menubuilder->buildMenu(0, $this->nIdUsuario);
             $this->dataMenu = [
-                'navbar' => $this->aPermiso[1],
+                'menuItems' => $resultado[1],  // Array estructurado del menú
                 'nIdUsuario' => $this->nIdUsuario,
                 'slogin' => $this->sLogin,
                 'sucursal' => $this->sSucursal,
                 'aInfoSis' => $this->aInfoSis,
             ];
-            $this->aPermiso = $this->aPermiso[2];
+            $this->aPermiso = $resultado[2];
         }
     }
 

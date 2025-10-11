@@ -41,27 +41,27 @@ $routes->get('prueba', 'Catalogos\Prueba::index');
 
 $routes->get('cierrasesion', 'Seguridad\Login::cierraSesion');
 
-$routes->match(['get','post'], 'login', 'Seguridad\Login::index');
+$routes->match(['get', 'post'], 'login', 'Seguridad\Login::index');
 //$routes->get('/', 'Seguridad\Login::index');
-$routes->match(['get','post'], '/', 'Main::index');
-$routes->match(['get','post'], 'desktop', 'Main::index');
-//$routes->match(['get','post'], '/', 'Main::index');
+$routes->match(['get', 'post'], '/', 'Main::index');
+$routes->match(['get', 'post'], 'desktop', 'Main::index');
+$routes->match(['get', 'post'], 'desktop/content', 'Main::desktopContent');
 
 $routes->get('articulo', 'Catalogos\Articulo::index');
 $routes->match(['get', 'post'], 'articulo/([aeb])(/(:num))?', 'Catalogos\Articulo::accion/$1/$3');
-$routes->match(['get','post'], 'articulo/(:any)', 'Catalogos\Articulo::$1');
+$routes->match(['get', 'post'], 'articulo/(:any)', 'Catalogos\Articulo::$1');
 
 $routes->get('existencias', 'Catalogos\Articulo::inventario');
-$routes->match( ['get','post'], 'existencia/(:num)/(:num)', 'Almacen\Inventario::leeRegistro/$1/$2');
-$routes->match( ['get','post'], 'existencias/(:any)', 'Almacen\Inventario::$1');
+$routes->match(['get', 'post'], 'existencia/(:num)/(:num)', 'Almacen\Inventario::leeRegistro/$1/$2');
+$routes->match(['get', 'post'], 'existencias/(:any)', 'Almacen\Inventario::$1');
 
 $routes->get('artclasificacion', 'Catalogos\ArtClasificacion::index');
 $routes->match(['get', 'post'], 'artclasificacion/([aeb])(/(:num))?', 'Catalogos\ArtClasificacion::accion/$1/$3');
-$routes->match(['get','post'], 'artclasificacion/(:segment)/(:segment)', 'Catalogos\ArtClasificacion::$1/$2');
+$routes->match(['get', 'post'], 'artclasificacion/(:segment)/(:segment)', 'Catalogos\ArtClasificacion::$1/$2');
 
 $routes->get('sucursal', 'Catalogos\Sucursal::index');
 $routes->match(['get', 'post'], 'sucursal/([aeb])(/(:num))?', 'Catalogos\Sucursal::accion/$1/$3');
-$routes->match(['get','post'],'sucursal/(:segment)/(:segment)', 'Catalogos\Sucursal::$1/$2');
+$routes->match(['get', 'post'], 'sucursal/(:segment)/(:segment)', 'Catalogos\Sucursal::$1/$2');
 
 $routes->get('proveedor', 'Catalogos\Proveedor::index');
 $routes->match(['get', 'post'], 'proveedor/([aeb])(/(:num))?', 'Catalogos\Proveedor::accion/$1/$3');
@@ -134,10 +134,10 @@ $routes->get('cotizaciones', 'Ventas\Cotizaciones::index');
 $routes->match(['get', 'post'], 'cotizaciones/(:any)', 'Ventas\Cotizaciones::$1');
 
 $routes->get('movimiento/(:segment)', 'Almacen\Movimiento::index/$1');
-$routes->match(['get','post'], 'movimiento/(:segment)/([aebrpnc]|\d+)(/(:num))?', 'Almacen\Movimiento::accion/$1/$2/$4');
-$routes->match(['post','get'], 'movimiento/(:any)', 'Almacen\Movimiento::$1');
+$routes->match(['get', 'post'], 'movimiento/(:segment)/([aebrpnc]|\d+)(/(:num))?', 'Almacen\Movimiento::accion/$1/$2/$4');
+$routes->match(['post', 'get'], 'movimiento/(:any)', 'Almacen\Movimiento::$1');
 
-$routes->match(['get','post'], 'imprime/(:segment)/(:num)?', 'Almacen\Movimiento::imprime/$1/$2/$3');
+$routes->match(['get', 'post'], 'imprime/(:segment)/(:num)?', 'Almacen\Movimiento::imprime/$1/$2/$3');
 
 $routes->get('cuentas/(pagar|cobrar)', 'Cuentas\Cuentas::index/$1');
 $routes->get('cuentas/exporta/(pagar|cobrar)', 'Cuentas\Cuentas::exporta/$1');
@@ -157,15 +157,15 @@ $routes->match(['get', 'post'], 'viajectrl/devolucion/(:any)', 'Viajes\ViajeCtrl
 $routes->match(['get', 'post'], 'viajectrl/([becsf])(/(:any))?', 'Viajes\ViajeCtrl::accion/$1/$3');
 
 $routes->get('tipolista', 'Catalogos\TipoLista::index');
-$routes->match(['get','post'],'tipolista/(:any)', 'Catalogos\TipoLista::accion/$1');
+$routes->match(['get', 'post'], 'tipolista/(:any)', 'Catalogos\TipoLista::accion/$1');
 
 $routes->get('cardex', 'Almacen\Cardex::index');
-$routes->match(['get','post'],'cardex/(:any)', 'Almacen\Cardex::$1');
+$routes->match(['get', 'post'], 'cardex/(:any)', 'Almacen\Cardex::$1');
 
-$routes->match(['get','post'],'factura/(:any)', 'Ventas\Facturas::$1');
+$routes->match(['get', 'post'], 'factura/(:any)', 'Ventas\Facturas::$1');
 
-$routes->match(['get'],'imprimeentrega', 'Almacen\ImprimeEntrega::index');
-$routes->match(['post'],'imprimeentrega/(:any)', 'Almacen\ImprimeEntrega::index/$1');
+$routes->match(['get'], 'imprimeentrega', 'Almacen\ImprimeEntrega::index');
+$routes->match(['post'], 'imprimeentrega/(:any)', 'Almacen\ImprimeEntrega::index/$1');
 
 /*
  * --------------------------------------------------------------------
