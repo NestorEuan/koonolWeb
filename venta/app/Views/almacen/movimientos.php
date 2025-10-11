@@ -6,11 +6,22 @@ $aKeys = [
     'entrega' => ['nIdEntrega', 'dEntrega', 'F.Engrega'],
     'entrada' => ['nIdEntrada', 'dEntrada', 'F.Entrada'],
     'traspaso' => ['nIdTraspaso', 'dTraspaso', 'F.Traspaso'],
+    'capturainv' => ['idInventarioCaptura', 'dAplicacion', 'F.Aplicación'],
 ];
 $sKey = $aKeys[$operacion][0];
 $sMov = $aKeys[$operacion][1];
 $fMov = $aKeys[$operacion][2];
 $bOcultaRecepcion = $operacion === "compra" && $modocompra == "pagocompra";
+
+// Variables de configuración para módulos
+$bMostrarSelectorSucursal = in_array($operacion, array('entrada', 'salida', 'traspaso'));
+$bModuloLogistica = true; // Cambiar a false para Ker si no se requiere
+$bPermitirCancelacion = true; // Para habilitar cancelaciones según la aplicación
+
+// Rutas de acción unificadas
+$rutaVer = 'v'; // Ruta para ver/consultar (era 'e' en Ker, 'c' en Venta)
+$rutaCancelar = 'c'; // Ruta para cancelar
+
 // $cEdo = '0';
 if (isset($aWhere)) {
     $cEdo = $aWhere['Edo'];
@@ -53,16 +64,40 @@ if (isset($aWhere)) {
                 <input type="date" name="dFin" id="dFin" class="form-control text-center" value="<?= $dFin ?>">
             </div>
         </div>
+        
+        <?php if ($bMostrarSelectorSucursal && isset($aSucursales)) : ?>
+        <div class="col-12 mb-1 col-md-8 col-lg-6 mt-2 mt-lg-0">
+            <div class="input-group">
+                <span class="input-group-text">Sucursal</span>
+                <select class="form-select" name="nIdSucursal" id="nIdSucursal">
+                    <?php foreach ($aSucursales as $suc) : ?>
+                        <option value="<?= $suc['nIdSucursal'] ?>" <?= $suc['nIdSucursal'] == $nIdSucursal ? 'selected' : '' ?>><?= $suc['sDescripcion'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <?php endif; ?>
+        
+        <?php if ($bMostrarSelectorSucursal && isset($pager) && $pager->getPageCount() > 1) : ?>
+        <div class="col-12 mb-1 col-md-4 col-lg-3 mt-2 mt-lg-0">
+            <div class="input-group">
+                <span class="input-group-text">Página</span>
+                <input type="number" class="form-control" aria-label="Pagina" aria-describedby="pagina" value="<?= $pagina ?>" id="pagina" name="pagina">
+            </div>
+        </div>
+        <?php endif; ?>
+        
         <div class="col-12 mt-2 text-sm-end d-flex flex-column flex-md-row col-lg mt-lg-0">
             <button type="submit" class="btn btn-secondary bg-gradient mb-1 me-md-auto">Filtrar</button>
             <?php if ($operacion !== 'entrega') : ?>
                 <a class="btn btn-primary bg-gradient mb-1 me-md-2" href="<?= base_url('movimiento/' . $operacion . '/a') ?>">Agregar</a>
             <?php endif ?>
+            <?php if ($bMostrarSelectorSucursal) : ?>
+                <button type="button" class="btn btn-primary bg-gradient mb-1">Exportar</button>
+            <?php endif; ?>
         </div>
     </form>
-
     <div class="row border rounded">
-
         <table class="table table-striped table-sm">
             <thead>
                 <tr>
@@ -73,7 +108,7 @@ if (isset($aWhere)) {
                         <th>Proveedor</th>
                     <?php endif ?>
                     <th>F.Solicitud</th>
-                    <?php if ($operacion == 'traspaso') : ?>
+                    <?php if ($bModuloLogistica && $operacion == 'traspaso') : ?>
                         <th>Envio/Viaje</th>
                     <?php endif ?>
                     <th>Estado</th>
@@ -85,7 +120,7 @@ if (isset($aWhere)) {
             <tbody id="bodyTabla">
                 <?php if (empty($registros)) : ?>
                     <tr>
-                        <td colspan="5" class="fs-5 text-center">No hay registros</td>
+                        <td colspan="7" class="fs-5 text-center">No hay registros</td>
                     </tr>
                 <?php else : ?>
                     <?php foreach ($registros as $r) : ?>
@@ -105,7 +140,7 @@ if (isset($aWhere)) {
                                 <td><?= $sClienteProveedor ?></td>
                             <?php endif ?>
                             <td><?= $dSolicita; ?></td>
-                            <?php if ($operacion == 'traspaso') : ?>
+                            <?php if ($bModuloLogistica && $operacion == 'traspaso') : ?>
                                 <td><?= ($r['nIdEnvio'] > 0 ? $r['nIdEnvio'] : '') . ($r['nIdViaje'] > 0 ? ' / ' . $r['nIdViaje'] : '') ?></td>
                             <?php endif ?>
                             <td>
@@ -146,22 +181,23 @@ if (isset($aWhere)) {
                                         default:
                                             echo 'Pendiente';
                                     }
-                                ?></td>
-                            <!--td>< ?= $r['nProductos']? ></td -->
+                                ?>
+                            </td>
                             <td>
                                 <?php if ($operacion === 'compra') : ?>
                                     <?php if ($modocompra === 'pagocompra') : ?>
                                         <?php if ($r['cEdoPago'] === '1') : ?>
-                                            <a href="<?php echo base_url(); ?>/movimiento/<?= $operacion ?>/p/<?php echo $nKey ?>" style="text-decoration: none;">
-                                                <i class="bi bi-cash-coin text-primary me-3" style="cursor:pointer;"></i>
+                                            <a href="<?= base_url('movimiento/' . $operacion . '/p/' . $nKey) ?>" style="text-decoration: none;">
+                                                <i class="bi bi-cash-coin text-primary me-2" style="cursor:pointer;"></i>
                                             </a>
                                         <?php elseif ($r['cEdoPago'] === '0') : ?>
-                                            <a href="<?php echo base_url(); ?>/movimiento/<?= $operacion ?>/n/<?php echo $nKey ?>" style="text-decoration: none;">
-                                                <i class="bi bi-clipboard2-check text-primary me-3" style="cursor:pointer;"></i>
+                                            <a href="<?= base_url('movimiento/' . $operacion . '/n/' . $nKey) ?>" style="text-decoration: none;">
+                                                <i class="bi bi-clipboard2-check text-primary me-2" style="cursor:pointer;"></i>
                                             </a>
                                         <?php endif; ?>
                                     <?php endif; ?>
                                 <?php endif; ?>
+                                
                                 <?php if (!$bOcultaRecepcion) : ?>
                                     <?php if ($modocompra !== 'pagocompra' && $r['cEdoEntrega'] == '3') : ?>
                                         <i class="bi bi-entrega-mano-fill text-secondary me-2" style="font-size: 1.5rem;"></i>
@@ -171,33 +207,43 @@ if (isset($aWhere)) {
                                         </a>
                                     <?php endif; ?>
                                 <?php endif; ?>
+                                
                                 <?php if ($operacion !== 'entrega') : ?>
-                                    <a href="<?php echo base_url(); ?>/movimiento/<?= $operacion ?>/c/<?php echo $nKey ?>" style="text-decoration: none;">
+                                    <a href="<?= base_url('movimiento/' . $operacion . '/c/' . $nKey) ?>" style="text-decoration: none;">
                                         <i class="bi bi-eye-fill text-primary me-2" style="cursor:pointer; font-size: 1.5rem;"></i>
                                     </a>
-                                    <a href="<?php echo base_url(); ?>/imprime/<?= $operacion ?>/<?php echo $nKey ?>" style="text-decoration: none;" target="_blank">
+                                    <a href="<?= base_url('imprime/' . $operacion . '/' . $nKey) ?>" style="text-decoration: none;" target="_blank">
                                         <i class="bi bi-printer-fill text-primary me-2" style="cursor:pointer; font-size: 1.5rem;"></i>
                                     </a>
                                 <?php endif; ?>
-                                <?php if ($operacion == 'traspaso') : ?>
-                                    <?php if ($r['contEnviosViajes'] == 0 && !in_array($r['cEdoEntrega'], ['2', '3', '5'])) : ?>
-                                        <a href="<?= base_url('movimiento/' . $operacion . '/b/' . $nKey) ?>" style="text-decoration: none;">
-                                            <i class="bi bi-x-octagon-fill text-primary" style="cursor:pointer; font-size: 1.5rem;" title="Cancelar el traspaso"></i>
+                                
+                                <?php if ($bPermitirCancelacion) : ?>
+                                    <?php if ($operacion == 'entrada' && $r['cEdoEntrega'] < '3') : ?>
+                                        <a href="<?= base_url('movimiento/' . $operacion . '/' . $rutaCancelar . '/' . $nKey) ?>" style="text-decoration: none;">
+                                            <i class="bi bi-x-circle text-danger" style="cursor:pointer; font-size: 1.5rem;"></i>
                                         </a>
-                                    <?php else : ?>
-                                        <i class="bi bi-x-octagon-fill text-secondary" style="font-size: 1.5rem;"></i>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($operacion == 'traspaso') : ?>
+                                        <?php if (isset($r['contEnviosViajes']) && $r['contEnviosViajes'] == 0 && !in_array($r['cEdoEntrega'], ['2', '3', '5'])) : ?>
+                                            <a href="<?= base_url('movimiento/' . $operacion . '/b/' . $nKey) ?>" style="text-decoration: none;">
+                                                <i class="bi bi-x-octagon-fill text-primary" style="cursor:pointer; font-size: 1.5rem;" title="Cancelar el traspaso"></i>
+                                            </a>
+                                        <?php else : ?>
+                                            <i class="bi bi-x-octagon-fill text-secondary" style="font-size: 1.5rem;"></i>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($operacion == 'compra') : ?>
+                                        <?php if (!in_array($r['cEdoEntrega'], ['2', '3', '5'])) : ?>
+                                            <a href="<?= base_url('movimiento/' . $operacion . '/b/' . $nKey) ?>" style="text-decoration: none;">
+                                                <i class="bi bi-x-octagon-fill text-primary" style="cursor:pointer; font-size: 1.5rem;" title="Cancelar la compra"></i>
+                                            </a>
+                                        <?php else : ?>
+                                            <i class="bi bi-x-octagon-fill text-secondary" style="font-size: 1.5rem;"></i>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 <?php endif; ?>
-                                <?php if ($operacion == 'compra') : ?>
-                                    <?php if (!in_array($r['cEdoEntrega'], ['2', '3', '5'])) : ?>
-                                        <a href="<?= base_url('movimiento/' . $operacion . '/b/' . $nKey) ?>" style="text-decoration: none;">
-                                            <i class="bi bi-x-octagon-fill text-primary" style="cursor:pointer; font-size: 1.5rem;" title="Cancelar la compra"></i>
-                                        </a>
-                                    <?php else : ?>
-                                        <i class="bi bi-x-octagon-fill text-secondary" style="font-size: 1.5rem;"></i>
-                                    <?php endif; ?>
-                                <?php endif; ?>
-
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -221,7 +267,6 @@ if (isset($aWhere)) {
             valFin: function(e) {
                 $("#dFin").attr('min', e.target.value);
                 $("#dFin").attr('value', e.target.value);
-                //window.alert(e.target.value);
             },
             valIni: function(e) {
                 $("#dIni").attr('max', e.target.value);
