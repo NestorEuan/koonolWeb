@@ -16,7 +16,7 @@ $estatusViajes = [
         </div>
     </div>
     <h4>Viajes</h4>
-    <form class="row border rounded mb-3 py-2" action="<?php base_url('Viajes/viaje') ?>" method="get" id="frmFiltro">
+    <form class="row border rounded mb-3 py-2" action="<?php base_url('viajes/viaje') ?>" method="get" id="frmFiltro">
         <div class="col">
             <div class="row">
                 <div class="col-4">

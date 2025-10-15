@@ -81,7 +81,7 @@ class EnvioMdl extends Model
             ->join("vtventas vt", "enenvio.nIdOrigen = vt.nIdVentas", "left")
             ->join("altraspaso tr", "enenvio.nIdOrigen = tr.nIdTraspaso", "left")
             ->where($where, null, false)
-            ->orderBy('enenvio.nIdEnvio', 'asc');
+            ->orderBy('enenvio.nIdEnvio', 'desc');
         if ($idEnvio)
             return $this->first();
         else

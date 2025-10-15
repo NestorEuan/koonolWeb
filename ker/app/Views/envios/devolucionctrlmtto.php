@@ -85,7 +85,7 @@ $fPesoTotal = 0;
                                         <input type="text" data-id="<?= $nKey ?>" data-cantidad="<?= sprintf("%0.0f", $r['fDevolver']) ?? 0 ?>" id="arte-<?= $nCont ?>" data-peso="<?= $r['fPeso'] ?>" class="form-control text-end input-sm py-0" name="<?= $operacion ?>[<?= $nKey ?>]" value="<?= sprintf("%0.0f", $r['fDevolver'] ?? 0)  ?>" <?= $fDisponible > 0 ? ($modo == 'B' ? 'readonly' : '') : ($modo === 'D' ? '' : 'readonly') ?>>
                                         <input type="hidden" id="pesosumar-<?= $nCont ?>" class="form-control text-end input-sm py-0" name="pesosumar[<?= $nKey ?>]" value="<?= $fPeso  ?>" readonly>
                                     </td>
-                                    <td class="text-end" id="peso-<?= $nCont ?>"><?= $fPeso / 1000 > 0.49 ? sprintf('%01.2f Tons', $fPeso / 1000) : $fPeso . 'Kg.' ?> </td>
+                                    <td class="text-end" id="peso-<?= $nCont ?>"><?= $fPeso / 1000 > 1.00 ? sprintf('%01.2f Tons', $fPeso / 1000) : $fPeso . 'Kg.' ?> </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

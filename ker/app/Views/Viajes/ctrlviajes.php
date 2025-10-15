@@ -18,7 +18,7 @@ $estatusViajes = [
         </div>
     </div>
     <h4>Control de Viajes</h4>
-    <form class="row border rounded mb-3 py-2" action="<?php base_url('viajes/viajectrl') ?>" method="get" id="frmFiltro">
+    <form class="row border rounded mb-3 py-2" action="<?php base_url('Viajes/viajectrl') ?>" method="get" id="frmFiltro">
         <div class="col">
             <div class="row">
                 <div class="col-4">
@@ -76,14 +76,15 @@ $estatusViajes = [
                                 <td><?= $r['nomChofer'] ?></td>
                                 <td class="text-center"><?= $estatusViajes[$r['cEstatus']] ?></td>
                                 <td><?= $r['sObservacion'] ?></td>
-                                <td class="text-center">
-                                    <a class="bi bi-eye-fill text-primary me-2 fs-5" style="cursor:pointer;" title="Consultar Viaje" href="<?= base_url('viajectrl/c/' . $r['nIdViaje']) ?>"></a>
+                                <td class="text-center" style="width:170px;">
+                                    <?php $sizeIcons = $esMobil ? 'fs-1' : 'fs-5'; ?>
+                                    <a class="bi bi-eye-fill text-primary me-2 <?= $sizeIcons ?>" style="cursor:pointer;" title="Consultar Viaje" href="<?= base_url('viajectrl/c/' . $r['nIdViaje']) ?>"></a>
                                     <?php if ($r['cEstatus'] == '1') : ?>
-                                        <a class="bi bi-truckdelivery1 text-primary me-2 fs-5" style="cursor:pointer;" title="Salida Viaje" href="<?= base_url('viajectrl/s/' . $r['nIdViaje']) ?>"></a>
-                                    <?php elseif($r['cEstatus'] == '2') : ?>
-                                        <a class="bi bi-clipboard2-check-fill text-primary me-2 fs-5" style="cursor:pointer;" title="Concluir Viaje" href="<?= base_url('viajectrl/f/' . $r['nIdViaje']) ?>"></a>
+                                        <a class="bi bi-truckdelivery1 text-primary me-2  <?= $sizeIcons ?>" style="cursor:pointer;" title="Salida Viaje" href="<?= base_url('viajectrl/s/' . $r['nIdViaje']) ?>"></a>
+                                    <?php elseif ($r['cEstatus'] == '2') : ?>
+                                        <a class="bi bi-clipboard2-check-fill text-primary me-2  <?= $sizeIcons ?>" style="cursor:pointer;" title="Concluir Viaje" href="<?= base_url('viajectrl/f/' . $r['nIdViaje']) ?>"></a>
                                     <?php else : ?>
-                                        <a class="bi bi-check-square-fill text-secondary me-2 fs-5" title="Viaje Finalizado"></a>
+                                        <a class="bi bi-check-square-fill text-secondary me-2  <?= $sizeIcons ?>" title="Viaje Finalizado"></a>
                                     <?php endif; ?>
                                 </td>
                             </tr>

@@ -83,7 +83,7 @@ $estatusViajes = [
                                     <?php endif; ?>
 
                                     <?php if ($r['cEstatus'] == '0') : ?>
-                                        <a class="bi bi-pencil-fill text-primary me-2 " style="cursor:pointer;" title="Editar Viaje" href="<?= base_url('viaje/e/' . $r['nIdViaje']) ?>"></a>
+                                        <a class="bi bi-pencil-fill <?= intval($r['nEnvios']) > 0 ? 'text-primary' : 'text-danger' ?> me-2 " style="cursor:pointer;" title="Editar Viaje" href="<?= base_url('viaje/e/' . $r['nIdViaje']) ?>"></a>
                                     <?php else : ?>
                                         <a class="bi bi-pencil-fill text-secondary me-2 " title="Editar Viaje"></a>
                                     <?php endif; ?>
@@ -102,6 +102,7 @@ $estatusViajes = [
         <?= $pager->links() ?>
     </div>
 </div>
+<?= generaModalGeneral('frmModalViajes', 'modal-dialog-scrollable modal-dialog-centered') ?>
 
 <script type="text/javascript">
     $(document).ready(function() {

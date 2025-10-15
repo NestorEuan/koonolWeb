@@ -1,15 +1,15 @@
 <?php
 $aKeys = [
-    'pagar'  => ['nIdCompra', 'dcompra', 'F.Compra', 'fSaldo', 'dSolicitud', 'compra'],
-    'cobrar' => ['nIdVentas', 'dtAlta', 'F.Venta', 'fSaldo', 'dtAlta', 'compra'],
+    'pagar'  => ['nIdCompra', 'dcompra', 'F.Compra', 'fSaldo', 'dSolicitud', 'Proveedor'],
+    'cobrar' => ['nIdVentas', 'dtAlta', 'F.Venta', 'fSaldo', 'dtAlta', 'Cliente'],
 ];
 $sKey = $aKeys[$operacion][0];
 $sMov = $aKeys[$operacion][1];
 $fMov = $aKeys[$operacion][2];
 $nTotal = $aKeys[$operacion][3];
 $fSolicitud = $aKeys[$operacion][4];
-$bOcultaRecepcion = $operacion === "compra";
-$consultar = $aKeys[$operacion][5];
+$clienteproveedor = $aKeys[$operacion][5];
+$bOcultaRecepcion = $operacion === "cobrar";
 // $cEdo = '0';
 if (isset($aWhere)) {
     $cEdo = $aWhere['Edo'] ?? '0';
@@ -23,8 +23,8 @@ if (isset($aWhere)) {
         </div>
     </div>
     <h5><?= $titulo ?></h5>
-    <form class="row border rounded mb-3 py-1" action="<?= base_url('cuentas/' . $operacion) ?>" method="get" id="formFiltro">
-        <div class="col-12 mb-1 col-md-4 col-lg-3">
+    <form class="row border rounded mb-3 py-1" action="<?= base_url('cuentas/' . $operacion) ?>" method="get" id="formFiltro" autocomplete="off">
+        <div class="col-12 mb-1 col-md-4 col-lg-2">
             <div class="input-group">
                 <span class="input-group-text">Estado</span>
                 <select class="form-select" name="cEstado" id="cEstado">
@@ -36,14 +36,14 @@ if (isset($aWhere)) {
         </div>
         <div class="col-12 mb-1 col-md-8 col-lg-4">
             <div class="input-group">
-                <span class="input-group-text w-25">F. Venta</span>
+                <span class="input-group-text w-25"><?= $fMov ?></span>
                 <input type="date" name="dIni" id="dIni" class="form-control text-center" value="<?= $dIni ?>" <?= $cEdo == '0' ? 'disabled' : '' ?>>
                 <input type="date" name="dFin" id="dFin" class="form-control text-center" value="<?= $dFin ?>" <?= $cEdo == '0' ? 'disabled' : '' ?>>
             </div>
         </div>
         <div class="col-12 col-md-6 col-lg-3">
             <div class="input-group ">
-                <span class="input-group-text">Cliente</span>
+                <span class="input-group-text"><?= $clienteproveedor ?></span>
                 <input type="text" class="form-control" id="sCliente" name="sCliente" list="dlClientes" placeholder="Escriba nombre o id" aria-label="id/nombre del cliente" value="<?= set_value('sCliente', '') ?>" />
                 <input type="hidden" name="idCliente" id="idCliente" value="<?= set_value('idCliente', '') ?>">
                 <datalist id="dlClientes"></datalist>
@@ -51,6 +51,12 @@ if (isset($aWhere)) {
         </div>
         <div class="col-12 col-md-6 col-lg d-flex flex-column flex-md-row">
             <button type="submit" class="btn btn-secondary bg-gradient mb-1 me-md-auto">Filtrar</button>
+            <?php if ($operacion == 'cobrar') : ?>
+                <div class="form-check-inline mt-2">
+                    <input type="checkbox" name="chkSoloCliente" id="chkSoloCliente" class="form-check-input">
+                    <label class="form-check-label" for="chkSoloCliente">Para el cliente</label>
+                </div>
+            <?php endif; ?>
             <button type="button" class="btn btn-primary bg-gradient mb-1" id="btnExportar">Exportar</button>
         </div>
     </form>
@@ -144,16 +150,16 @@ if (isset($aWhere)) {
                 let val = (e.target.value ?? '').trim();
                 if (val != '') {
                     if (/^\d+$/.test(val) === true) return;
-                    $.get(baseURL + '/cliente/buscaNombre/' + val, {}, null, 'json')
+                    $.get(baseURL + '/<?= $operacion == 'cobrar' ? 'cliente' : 'proveedor' ?>/buscaNombre/' + val, {}, null, 'json')
                         .done(function(data, textStatus, jqxhr) {
                             let a = '',
                                 id = '';
                             for (const x of data.registro) {
                                 a += '<option value="' + x.sNombre +
-                                    '" data-id="' + x.nIdCliente + '" >';
+                                    '" data-id="' + x.nID + '" >';
                                 if (id == '') {
-                                    id = x.nIdCliente;
-                                    appCuentas.idClienteActual = x.nIdCliente;
+                                    id = x.nID;
+                                    appCuentas.idClienteActual = x.nID;
                                     appCuentas.sClienteActual = x.sNombre;
                                 }
                             }
@@ -179,16 +185,16 @@ if (isset($aWhere)) {
                 function asignaCliente(d) {
                     $('#dlClientes').html('<option ' +
                         'value="' + d.sNombre + '" ' +
-                        'data-id="' + d.nIdCliente + '" ' +
+                        'data-id="' + d.nID + '" ' +
                         '></option>'
                     );
                     $('#sCliente').val(d.sNombre);
-                    $('#idCliente').val(d.nIdCliente);
+                    $('#idCliente').val(d.nID);
                     $('#formFiltro').submit();
                 };
 
                 function buscaCliente(id, par) {
-                    $.post(baseURL + '/cliente/leeRegistro/' + id + '/1' + par, {}, null, 'json').
+                    $.post(baseURL + '/<?= $operacion == 'cobrar' ? 'cliente' : 'proveedor' ?>/leeRegistro/' + id + '/1' + par, {}, null, 'json').
                     done(function(data, textStatus, jqxhr) {
                         if (data.ok == '0') {
                             miGlobal.muestraAlerta('Cliente no encontrado', 'cuentas', 1700);

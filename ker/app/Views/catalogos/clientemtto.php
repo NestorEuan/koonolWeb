@@ -3,7 +3,7 @@
 <hr>
 <form action="<?= $frmURL ?>" method="post" id="addClientefrm">
     <input type="hidden" id="nIdCliente" name="nIdCliente" value="<?= $id ?>">
-    <!-- ?php generaCampoTexto('nIdCliente', $error ?? false, 'hidden', $registro ?? null, $modo, 'form-control-sm'); ? -->
+    <?php generaCampoTexto('nIdCliente', $error ?? false, 'hidden', $registro ?? null, $modo, 'form-control-sm'); ?>
     <div class="mb-3">
         <label for="sNombre" class="form-label">Nombre</label>
         <?php generaCampoTexto('sNombre', $error ?? false, null, $registro ?? null, $modo, 'form-control-sm'); ?>

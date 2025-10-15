@@ -15,8 +15,14 @@ class Usuario extends BaseController
         $this->validaSesion();
         $model = new UsuarioMdl();
 
-        $data['registros'] =  $model->getRegistros(false, true, intval($this->nIdUsuario) == 1 ? false : $this->nIdSucursal, ($_SESSION['perfilUsuario'] == '-1'));
+        $data['registros'] =  $model->getRegistros(
+            false, 
+            true, 
+            intval($this->nIdUsuario) == 1 ? false : $this->nIdSucursal, 
+            ($_SESSION['perfilUsuario'] == '-1')
+        );
         $data['pager'] = $model->pager;
+        $data['esSuper'] = $_SESSION['perfilUsuario'] == '-1';
 
         echo view('templates/header', $this->dataMenu);
         echo view('seguridad/usuarios', $data);
@@ -28,7 +34,15 @@ class Usuario extends BaseController
         $this->validaSesion();
         $model = new UsuarioMdl();
         $data = [
-            'registros' => $model->getRegistros(false, true, intval($this->nIdUsuario) == 1 ? false : $this->nIdSucursal, intval($this->nIdUsuario) == 1),
+            'registros' => $model->getRegistros(
+                false, 
+                true, 
+                intval($this->nIdUsuario) == 1 ? false : $this->nIdSucursal, 
+                intval($this->nIdUsuario) == 1,
+                $this->request->getVar('sDescri') ?? false,
+                true,
+                true
+            ),
             'pager' => $model->pager,
             'permisoDescuentos' => isset($this->aPermiso['oPermitirDescuentos']),
             'permisoCambiarPrecio' => isset($this->aPermiso['oCambioPrecio']),
@@ -38,7 +52,9 @@ class Usuario extends BaseController
             'permisoActivarPrecioSinComisionDescuento' => isset($this->aPermiso['oPrecioSinRecalculo']),
             'permisoMantenerPrecioCoti' => isset($this->aPermiso['oMantenerPrecioCoti']),
             'permisoCambiaFechaFactura' => isset($this->aPermiso['oCambiaFechaFactura']),
-            'permisoPermiteCredito' => isset($this->aPermiso['oPermitirCredito'])
+            'permisoPermiteCredito' => isset($this->aPermiso['oPermitirCredito']),
+            'permisoCambioClienteRem' => isset($this->aPermiso['oPermitirCambioCliRem']),
+            'permisoEntregaModoENV' => isset($this->aPermiso['oPermitirEntregaENV']),
         ];
 
         echo view('templates/header', $this->dataMenu);
@@ -61,7 +77,7 @@ class Usuario extends BaseController
 
         $model->activaPermiso($id, $activa == 'true' ? 1 : 0, 'P');
     }
-    
+
     public function activacambiopreciosincomisiondescuento($id, $activa)
     {
         $this->validaSesion();
@@ -85,7 +101,7 @@ class Usuario extends BaseController
 
         $model->activaPermiso($id, $activa == 'true' ? 1 : 0, 'NV');
     }
-    
+
     public function activacancelaremision($id, $activa)
     {
         $this->validaSesion();
@@ -93,7 +109,7 @@ class Usuario extends BaseController
 
         $model->activaPermiso($id, $activa == 'true' ? 1 : 0, 'CR');
     }
-    
+
     public function activamantenerpreciocoti($id, $activa)
     {
         $this->validaSesion();
@@ -101,7 +117,7 @@ class Usuario extends BaseController
 
         $model->activaPermiso($id, $activa == 'true' ? 1 : 0, 'MPC');
     }
-    
+
     public function activacambiafecfac($id, $activa)
     {
         $this->validaSesion();
@@ -116,6 +132,22 @@ class Usuario extends BaseController
         $model = new UsuarioMdl();
 
         $model->activaPermiso($id, $activa == 'true' ? 1 : 0, 'PC');
+    }
+
+    public function activapermitecambiocli($id, $activa)
+    {
+        $this->validaSesion();
+        $model = new UsuarioMdl();
+
+        $model->activaPermiso($id, $activa == 'true' ? 1 : 0, 'CCLI');
+    }
+    
+    public function activaEntregaEnv($id, $activa)
+    {
+        $this->validaSesion();
+        $model = new UsuarioMdl();
+
+        $model->activaPermiso($id, $activa == 'true' ? 1 : 0, 'EME');
     }
 
     public function accion($tipoaccion, $id = 0)
@@ -152,8 +184,10 @@ class Usuario extends BaseController
                 $r = [
                     'sLogin' => $this->request->getVar('sLogin'),
                     'sNombre' => $this->request->getVar('sNombre'),
+                    'sMailCotizacion' => $this->request->getVar('sMailCotizacion'),
                     'nIdPerfil' => $this->request->getVar('nIdPerfil'),
-                    'nIdSucursal' => $this->request->getVar('nIdSucursal')
+                    'nIdSucursal' => $this->request->getVar('nIdSucursal'),
+                    'cEdoBaja' => ($this->request->getVar('cEdoBaja') ?? '0') == 'on' ? '1' : '0'
                 ];
                 if ($id > 0) {
                     $r['nIdUsuario'] = $this->request->getVar('nIdUsuario');

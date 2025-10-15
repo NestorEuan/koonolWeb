@@ -20,7 +20,7 @@ class Perfiles extends BaseController
         ];
 
         echo view('templates/header', $this->dataMenu);
-        echo view('seguridad/Modulos/perfiles', $data);
+        echo view('seguridad/modulos/perfiles', $data);
         echo view('templates/footer', $this->dataMenu);
     }
 
@@ -36,7 +36,7 @@ class Perfiles extends BaseController
             'modo' => strtoupper($tipoaccion),
             'id' => $id
         ];
-        if ($this->request->getMethod() == 'post') {
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             if ($tipoaccion === 'b') {
                 $mdlPerfiles->delete($id);
                 echo 'oK';
@@ -67,7 +67,7 @@ class Perfiles extends BaseController
         $mdlModulos = new ModulosMdl();
         $p = $id == '' ? '0' : $id;
         $data['registros'] = $mdlModulos->getModulosConPermisosPerfil($p);
-        echo view('seguridad/Modulos/perfilmtto', $data);
+        echo view('seguridad/modulos/perfilmtto', $data);
     }
    
     public function validaCampos()

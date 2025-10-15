@@ -30,9 +30,9 @@ if (isset($aWhere)) {
             <div class="col-12 mb-1 col-md-4 col-lg-3">
                 <div class="input-group">
                     <span class="input-group-text">Estado</span>
-                    <select class="form-select text-center" name="cEstado" id="cEstado">
-                        <option value="0" <?= $cEdo == '0' ? 'selected' : '' ?>>Pendientes</option>
-                        <option value="1" <?= $cEdo == '1' ? 'selected' : '' ?>>Surtidos</option>
+                    <select class="form-select" name="cEstado" id="cEstado">
+                        <option value="0" <?= $cEdo == '0' ? 'selected' : '' ?>>Pendientes por Asignar</option>
+                        <option value="1" <?= $cEdo == '1' ? 'selected' : '' ?>>Asignados a Viaje</option>
                         <option value="2" <?= $cEdo == '2' ? 'selected' : '' ?>>Todos</option>
                     </select>
                 </div>
@@ -147,7 +147,7 @@ if (isset($aWhere)) {
                         </tr>
                     <?php else : ?>
                         <?php foreach ($articulos as $arti) : ?>
-                            <?php if($arti['fPorRecibir'] == '0') continue; ?>
+                            <?php if ($arti['fPorRecibir'] == '0') continue; ?>
                             <tr>
                                 <td>
                                     <?= $arti['nIdArticulo'] ?>
@@ -174,13 +174,18 @@ if (isset($aWhere)) {
 
         <?php if (!isset($printerMode)) : ?>
             <div class="tab-pane fade show active" id="nav-envio" role="tabpanel" aria-labelledby="nav-envio-tab">
+                <div id="enviospenwAlert">
+                    <div class="alert alert-danger alert-dismissible position-absolute" style="display:none; top:5px; left:5px;z-index:1900;" role="alert">
+                    </div>
+                </div>
             <?php endif; ?>
 
             <table class="<?= $tblClass ?>">
                 <thead>
                     <tr>
-                        <th class="text-center">Envio/Origen/Folio<br>F. Solicitud</th>
-                        <th>Telefono</th>
+                        <th class="text-center">Envio/Origen/Folio<br>F. Solicitud/Sucursal</th>
+                        <th class="text-center">Fecha<br>Envio</th>
+                        <th class="text-center">Telefono</th>
                         <th>Enviar a</th>
                         <th>Dirección</th>
                         <th>Referencias</th>
@@ -213,25 +218,24 @@ if (isset($aWhere)) {
                                 $nFolio = $cOrigen == 'ven' ? $r['nFolioRemision'] : $r['nFolioTraspaso'];
                                 $dFecDocu = $cOrigen == 'ven' ? $r['dAltaVenta'] : $r['dAltaTraspaso'];
                                 $dFecDocu = (new DateTime($dFecDocu))->format('d-m-Y');
+                                $fecAltaEnvio = (new DateTime($r['dAltaEnvio']))->format('d-m-Y');
+                                $nomSuc = $cOrigen == 'ven' ? $r['nNomSucRemision'] : $r['nNomSucTraspaso'];
                                 echo "<tr>";
-                                echo '    <td class="text-center"> ' . $nKey . '/' . $cOrigen . '/' . $nFolio . '<br>' . $dFecDocu . " </td>";
-                                echo "    <td> {$r['sEnvTelefono']} </td>";
+                                echo '    <td class="text-center"> ' . $nKey . '/' . $cOrigen . '/' . $nFolio . '<br>' . $dFecDocu . '<br>' . $nomSuc . " </td>";
+                                echo "    <td class=\"text-center\" style=\"width:90px;\"> {$fecAltaEnvio} </td>";
+                                echo "    <td class=\"text-center\"> {$r['sEnvTelefono']} </td>";
                                 echo "    <td> {$r['nIdCliente']} {$r['sEnvEntrega']} <BR>({$r['sNombre']})</td>";
                                 echo "    <td> {$r['sEnvDireccion']}<BR>{$r['sEnvColonia']}</td>";
                                 echo "    <td> " . $r['sEnvReferencia'] . "</td>";
                                 echo "    <td> " . $r['cEstatus'] ?? 'Pendiente' . "</td>";
                                 if (!isset($printerMode)) {
-                                    if ($r['cOrigen'] == 'traspaso') {
-                                        echo "<td><i class=\"bi bi-trash text-secondary\" style=\"font-size: 1.2rem;\"></i></td>";
+
+                                    if ($r['cOrigen'] == 'traspaso' || $r['cEstatus'] == '5') {
+                                        echo "<td><i class=\"bi bi-entrega-mano-fill3 text-secondary\" style=\"font-size: 1.2rem;\"></i></td>";
                                     } else {
-                                        echo "    <td> " .
-                                            "<a href=\"\" style=\"text-decoration: none;\" " .
-                                            " data-bs-toggle=\"modal\" data-bs-target=\"#mdEnvioBorraConfirma\" " .
-                                            " data-llamar=\"" . base_url() . "/envio/b/" . $nKey . "\" data-mod-msj=\"Eliminar envio?\" " .
-                                            " > " .
-                                            "<i class=\"bi bi-trash\" style=\"cursor:pointer; font-size: 1.2rem;\"></i>" .
-                                            "</a>" .
-                                            "</td>";
+                    ?>
+                                        <td><i class="bi bi-entrega-mano-fill3 text-primary me-2 fw-bold fs-5" data-bs-toggle="modal" data-bs-target="#mdEnvioBorraConfirma" data-mod-msj="Reasignar productos restantes del envio <?= $r['nIdEnvio'] ?> a ventas?" data-mod-titulo="Confirmar acción" data-llamar="<?= 'viaje/envio/r/' . $r['nIdEnvio'] . '/0/' . ($r['cOrigen'] == 'ventas' ? $r['nIdOrigen'] : '0') . '/1' ?>" style="cursor:pointer;" title="Para reasignar en ventas"></i></td>
+                    <?php
                                     }
 
                                     echo "    <td> " .
@@ -338,7 +342,14 @@ if (isset($aWhere)) {
             confirmar: function(e) {
                 let a = $(e.relatedTarget);
                 appEnvios.cmd = a.data('llamar');
+
+                $('#mdEnvioBorraConfirma div.modal-body > p').html(a.data(
+                    'mod-msj'));
+
+                let tit = a.data('titulo');
+                if (tit) $('#mdEnvioBorraConfirma div.modal-body > h3').html(tit);
             },
+
             btnGuardar: false,
             enviar: function(e) {
                 if (appEnvios.btnGuardar) return;
@@ -357,6 +368,33 @@ if (isset($aWhere)) {
                     }
                 }).fail(function(jqxhr, textStatus, err) {
                     console.log('fail', jqxhr, textStatus, err);
+                });
+            },
+
+            enProceso: false,
+            enviar: function(e) {
+                if (appEnvios.enProceso) return;
+                appEnvios.enProceso = true;
+                e.target.disabled = true;
+
+                $.post(baseURL + '/' + appEnvios.cmd, {}, null, 'html').
+                done(function(data, textStatus, jqxhr) {
+                    if (data.substr(0, 4) === 'nooK') {
+                        if (data.substr(4, 3) == 'msj') {
+                            miGlobal.muestraAlerta(data.substr(7), 'enviospen', 4500);
+                        } else {
+                            miGlobal.muestraAlerta('Error desconocido', 'enviospen', 1500);
+                        }
+                        e.target.disabled = false;
+                        appEnvios.enProceso = false;
+                    } else {
+                        location.reload();
+                    }
+                }).
+                fail(function(jqxhr, textStatus, err) {
+                    console.log('fail', jqxhr, textStatus, err);
+                    e.target.disabled = false;
+                    appEnvios.enProceso = false;
                 });
             }
         };

@@ -30,12 +30,25 @@ class CreditoPagoMdl extends Model
 
     public function getLstRegs($id = 0, $idSuc = false, $aCond = null)
     {
-        $this->select('vtcreditopago.*, p.sLeyenda')
-            ->join('vttipopago p', 'vtcreditopago.nIdTipoPago = p.nIdTipoPago', 'inner');
+        // si nIdEScaja != 0 y cierreCorte == null se puede cancelar el pago
+        // porque el pago que se quiere cancelar es de un corte activo.
+        $this->select(
+            'vtcreditopago.*, p.sLeyenda, ' .
+                'IFNULL(ecp.nIdEScaja, 0) AS nIdEScaja, cc.dtCierre AS cierreCorte, ' .
+                'IFNULL(su.sDescripcion, \'\') AS nomSuc '
+                , false
+        )
+            ->join('vttipopago p', 'vtcreditopago.nIdTipoPago = p.nIdTipoPago', 'inner')
+            ->join('vtescreditopago ecp', 'vtcreditopago.nIdCreditoPago = ecp.nIdCreditoPago', 'left')
+            ->join('vtcortedet cd', 'ecp.nIdEScaja = cd.nIdMovto AND cd.cTipoMov = \'2\'', 'left', false)
+            ->join('vtcorte cc', 'cd.nIdCorte = cc.nIdCorte', 'left', false)
+            ->join('vtescaja es', 'ecp.nIdEScaja = es.nIdEScaja', 'left', false)
+            ->join('alsucursal su', 'es.nIdSucursal = su.nIdSucursal', 'left', false)
+            ;
 
         if ($id > 0) {
             return $this->where('vtcreditopago.nIdVentas', intval($id))
-                ->orderBy('vtcreditopago.fPago', 'ASC')->findAll();
+                ->orderBy('vtcreditopago.dtAlta', 'desc')->findAll();
         }
 
         $wFec = '';
@@ -90,5 +103,13 @@ class CreditoPagoMdl extends Model
         $this->where($where, null, false);
 
         return $this->findAll();
+    }
+
+    public function getIdEScaja($id)
+    {
+        $this->select('a.nIdEScaja')
+            ->join('vtescreditopago a', 'vtcreditopago.nIdCreditoPago = a.nIdCreditoPago', 'inner')
+            ->where('vtcreditopago.nIdCreditoPago', $id);
+        return $this->first();
     }
 }

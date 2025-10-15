@@ -68,7 +68,7 @@ $sMov = $aKeys[$operacion][1];
                                         <td><?= $dMov ?></td>
                                         <td><?= $r['nIdCliente'] . ' ' . $r['sNombre'] . '<BR>' . $r['sEnvEntrega'] ?></td>
                                         <td><?= $r['sEnvDireccion'] . ' ' . $r['sEnvColonia'] ?></td>
-                                        <td><?= $r['fPeso'] / 1000 > 0.49  ?  sprintf('%01.2f T', $r['fPeso'] / 1000) : $r['fPeso'] ?></td>
+                                        <td><?= $r['fPeso'] / 1000 > 1.00  ?  sprintf('%01.2f T', $r['fPeso'] / 1000) : $r['fPeso'] ?></td>
                                         <td>
                                             <?php if ($modo === 'V' || $modo === 'I') : ?>
                                                 <button class="btn  bi-truck  btn-link" data-bs-toggle="modal" data-bs-target="#frmMdlViaje" data-llamar="viajectrl/envioctrl/<?= strtolower($modo) ?>/<?= $r['nIdEnvio'] ?? 0 ?>/<?= $r['nIdViaje'] === $registro['nIdViaje'] ? $r['nIdViaje'] : 0 ?>/<?= $r['nIdViajeEnvio'] ?? 0 ?>" data-mod-msj="Cargar al?" style="cursor:pointer;" <?= $deshabilitaCampos ?>></button>
@@ -114,7 +114,7 @@ $sMov = $aKeys[$operacion][1];
                     <div class="row mb-1">
                         <div class="col-2">Peso</div>
                         <div class="col">
-                            <input class="form-control text-end input-sm py-0" type="text" value="<?= $registro['fPeso'] / 1000 > 0.49 ? sprintf('%01.2f', $registro['fPeso'] / 1000) . ' Tons' : $registro['fPeso'] . ' Kg.' ?>" readonly>
+                            <input class="form-control text-end input-sm py-0" type="text" value="<?= $registro['fPeso'] / 1000 > 1.00 ? sprintf('%01.2f', $registro['fPeso'] / 1000) . ' Tons' : $registro['fPeso'] . ' Kg.' ?>" readonly>
                         </div>
                     </div>
                     <hr style="height:1px; background-color:black; width:100%; margin: 2px 0 0 0;">

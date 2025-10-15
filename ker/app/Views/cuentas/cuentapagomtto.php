@@ -31,6 +31,12 @@ $datefld = 'dtPago';
             <?php generaCampoTexto("$datefld", $error ?? false, 'date', $registro ?? null, $modo); ?>
         </div>
     </div>
+    <?php if ($operacion  == 'pagar') : ?>
+        <div class="mb-3">
+            <label for="cObservaciones" class="form-label">Observaciones</label>
+            <?php generaCampoTexto('cObservaciones', $error ?? false, 'textarea', $registro ?? null, $modo); ?>
+        </div>
+    <?php endif; ?>
     <div class="row mb-3">
         <div class="col-6">
             <label for="nIdTipoPago" class="form-label">Tipo pago</label>
@@ -67,7 +73,7 @@ $datefld = 'dtPago';
             },
             proceso: false,
             enviar: function(e) {
-                if(addCuentaPago.proceso) return;
+                if (addCuentaPago.proceso) return;
                 addCuentaPago.proceso = true;
                 $('#btnGuardar')[0].disabled = true;
                 $.ajax({

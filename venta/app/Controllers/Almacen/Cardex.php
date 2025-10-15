@@ -32,6 +32,7 @@ class Cardex extends BaseController
         if ($id != '') {
             $mdlMovto = new MovimientoMdl();
             $data['registros'] = $mdlMovto->getMovtosArticulo($id, $this->nIdSucursal, $f[0], $f[1]);
+            $_SESSION['cardex']['datos'] = $data['registros'];
         } else {
             $data['registros'] = [];
         }
@@ -39,6 +40,22 @@ class Cardex extends BaseController
         echo view('templates/header', $this->dataMenu);
         echo view('almacen/cardex', $data);
         echo view('templates/footer', $this->dataMenu);
+    }
+
+    public function exporta()
+    {
+        $this->validaSesion();
+        $crdxArr = $_SESSION['cardex']['datos'];
+        $crdx2Exp[] = ["Fecha", "Tipo Docto", "Id Docto", "Cantidad", "Saldo"];
+        $saldo = $crdxArr[0]['fSaldoInicial'];
+        $crdx2Exp[] = [$crdxArr[0]['dtAlta'], 'Saldo Inicial', '', $crdxArr[0]['fSaldoInicial']];
+        foreach ($_SESSION['cardex']['datos'] as $r) {
+            $saldo += $r['fCantidad'];
+            $crdx2Exp[] = [$r['dtAlta'], $r['cOrigen'], $r['nIdOrigen'], $r['fCantidad'], $saldo];
+        }
+
+        $text = $this->ExportaCsv('test.csv', $crdx2Exp);
+        return $this->response->download('cardex.csv', $text);
     }
 
     public function exportaXLS()

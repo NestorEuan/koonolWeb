@@ -127,16 +127,18 @@ class EnvioMdl extends Model
     public function enviosdet($idSuc = false, $id = 0, $paginado = 0, $aCond = false)
     {
         $model = $this->select(
-            "enenvio.nIdEnvio, enenvio.nIdOrigen, enenvio.cOrigen, enenvio.nIdSucursal, enenvio.cEstatus, " .
+            "enenvio.nIdEnvio, enenvio.nIdOrigen, enenvio.cOrigen, enenvio.nIdSucursal, enenvio.cEstatus, enenvio.nIdDirEntrega, " .
                 "date_format(enenvio.dSolicitud,'%Y-%m-%d') dSolicitud, " .
                 "date_format(enenvio.dAsignacion,'%Y-%m-%d') dAsignacion, " .
                 "date_format(enenvio.dEntrega,'%Y-%m-%d') dEntrega, " .
+                "date_format(enenvio.dtAlta,'%Y-%m-%d') dAltaEnvio, " .
                 "s.sDescripcion, s.sDireccion, " .
                 "c.nIdCliente, c.sNombre,  " .
                 "d.sEnvDireccion, d.sEnvReferencia, d.sEnvEntrega, d.sEnvColonia, d.sEnvTelefono, " .
                 "a.nIdArticulo, a.sDescripcion sArticulo, " .
                 "format(ed.fCantidad,0) fCantidad, format(ed.fRecibido,0) fRecibido, format(ed.fPorRecibir,0) fPorRecibir, ed.cModoEnv,".
                 "IFNULL(vt.nFolioRemision, 0) as nFolioRemision, IFNULL(tr.nIdTraspaso, 0) as nFolioTraspaso,".
+                "IFNULL(sv.sDescripcion, '') as nNomSucRemision, IFNULL(st.sDescripcion, '') as nNomSucTraspaso, ".
                 "IFNULL(vt.dtAlta, '') as dAltaVenta, IFNULL(tr.dtAlta, 0) as dAltaTraspaso"
         )
             ->join("enenviodetalle ed", "ed.nIdEnvio = enenvio.nIdEnvio", "left")
@@ -145,8 +147,10 @@ class EnvioMdl extends Model
             ->join("vtcliente c", "c.nIdCliente = enenvio.nIdCliente", "left")
             ->join("vtdirentrega d", "d.nIdDirEntrega = enenvio.nIdDirEntrega", "left")
             ->join("vtventas vt", "enenvio.nIdOrigen = vt.nIdVentas", "left")
+            ->join("alsucursal sv", "sv.nIdSucursal = vt.nIdSucursal", "left")
             ->join("altraspaso tr", "enenvio.nIdOrigen = tr.nIdTraspaso", "left")
-            ->orderBy('enenvio.nIdEnvio,ed.nIdArticulo')
+            ->join("alsucursal st", "st.nIdSucursal = tr.nIdSucursal", "left")
+            ->orderBy('enenvio.nIdEnvio DESC,ed.nIdArticulo')
             //->where("enenvio.cEstatus !=","3")
         ;
         $aWhere = [];
@@ -157,7 +161,7 @@ class EnvioMdl extends Model
                     $aWhere['enenvio.cEstatus <'] = '5';
                     break;
                 case '1':
-                    $aWhere['enenvio.cEstatus >'] = '3';
+                    $aWhere['enenvio.cEstatus'] = '5';
                     break;
             }
             if ($aCond['dIni'] != null) {
@@ -181,11 +185,11 @@ class EnvioMdl extends Model
     public function enviosart($idSuc = false, $id = 0, $paginado = 0, $aCond = null)
     {
         $model = $this->select(
-            "enenvio.nIdEnvio, nIdOrigen, cOrigen, enenvio.nIdSucursal, enenvio.cEstatus, " .
-                "date_format(dSolicitud,'%Y-%m-%d') dSolicitud, " .
-                "date_format(dAsignacion,'%Y-%m-%d') dAsignacion, " .
-                "date_format(dEntrega,'%Y-%m-%d') dEntrega, " .
-                "s.sDescripcion, s.sDireccion, " .
+            // "enenvio.nIdEnvio, nIdOrigen, cOrigen, enenvio.nIdSucursal, enenvio.cEstatus, " .
+            //    "date_format(dSolicitud,'%Y-%m-%d') dSolicitud, " .
+            //    "date_format(dAsignacion,'%Y-%m-%d') dAsignacion, " .
+            //    "date_format(dEntrega,'%Y-%m-%d') dEntrega, " .
+            //    "s.sDescripcion, s.sDireccion, " .
                 "a.nIdArticulo, a.sDescripcion sArticulo, a.nIdArtClasificacion, " .
                 "format(sum(ed.fCantidad),0) fCantidad, " .
                 "format(sum(ed.fRecibido),0) fRecibido, " .
@@ -194,8 +198,8 @@ class EnvioMdl extends Model
             ->join("enenviodetalle ed", "ed.nIdEnvio = enenvio.nIdEnvio", "left")
             ->join("alarticulo a", "a.nIdArticulo = ed.nIdArticulo", "left")
             ->join("alsucursal s", "s.nIdSucursal = enenvio.nIdSucursal", "left")
-            ->orderBy('a.nIdArtClasificacion, ed.nIdArticulo')
-            ->groupBy('ed.nIdArticulo')
+            ->orderBy('a.nIdArtClasificacion, a.nIdArticulo')
+            ->groupBy('a.nIdArticulo, a.sDescripcion, a.nIdArtClasificacion')
             //->where("enenvio.cEstatus !=", "3")
             ;
         $aWhere = [];

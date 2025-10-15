@@ -4,11 +4,16 @@ namespace App\Models\Compras;
 
 use CodeIgniter\Model;
 
-class CompraDetalleMdl extends Model{
+class CompraDetalleMdl extends Model
+{
     protected $table = 'cpcompradetalle';
 
-    protected $allowedFields = ['nIdCompra', 'nIdArticulo', 'fCantidad', 'fImporte', 'fRecibido', 'fPorRecibir' ];
-    
+    protected $allowedFields = [
+        'nIdCompra', 'nIdArticulo', 'fCantidad',
+        'fImporte', 'fRecibido', 'fPorRecibir',
+        'nIdViajeEnvio', 'fIVA'
+    ];
+
     protected $primaryKey = 'nIdCompraDetalle';
 
     protected $useTimestamps = true;
@@ -21,21 +26,20 @@ class CompraDetalleMdl extends Model{
 
     protected $updatedField = '';
 
-    public function updtRecibidos( $id, $idArt, $fRecibido )
+    public function updtRecibidos($id, $idArt, $fRecibido)
     {
-        $this->set('fRecibido', 'fRecibido + ' . $fRecibido, false )
-            ->set('fPorRecibir', 'fPorRecibir - ' . $fRecibido, false )
-            ->where(['nIdCompra' => $id, 'nIdArticulo' => $idArt ])
-            ->update();
-        ///->getCompiledSelect()
-        //var_dump(  $fRecibido . ' ' . $sql);
-        //exit;
+        // solo se pueden actualizar las compras sin envio
+        // porque las entradas por envios son devoluciones.
+        $this->set('fRecibido', 'fRecibido + ' . $fRecibido, false)
+            ->set('fPorRecibir', 'fPorRecibir - ' . $fRecibido, false)
+            ->where(['nIdCompra' => $id, 'nIdArticulo' => $idArt, 'nIdViajeEnvio' => 0]);
+        $this->update();
     }
 
-    public function updtCosto( $id, $idArt, $fImporte )
+    public function updtPrecio($id, $idArt, $fImporte)
     {
-        $this->set('fImporte', $fImporte )
-            ->where(['nIdCompra' => $id, 'nIdArticulo' => $idArt ])
+        $this->set('fImporte', $fImporte)
+            ->where(['nIdCompra' => $id, 'nIdArticulo' => $idArt])
             ->update();
         ///->getCompiledSelect()
         //var_dump(  $fRecibido . ' ' . $sql);
@@ -46,23 +50,29 @@ class CompraDetalleMdl extends Model{
     {
         $join1 = 'alarticulo a';
         $wjoin1 = 'a.nIdArticulo = cpcompradetalle.nIdArticulo';
-        if($paginado === 0)
+        $join2 = 'enviajeenvio b';
+        $wjoin2 = 'b.nIdViajeEnvio = cpcompradetalle.nIdViajeEnvio';
+        $this->select('cpcompradetalle.*, ' .
+            'a.sDescripcion, a.nCosto, a.cSinExistencia, a.fPeso, ' .
+            'IFNULL(b.nIdViajeEnvio, 0) AS nIdViajeEnvio, IFNULL(b.nIdEnvio, 0) AS nIdEnvio, IFNULL(b.nIdViaje, 0) AS nIdViaje,', false);
+        if ($paginado === 0)
             return $this
-                ->join($join1,$wjoin1,'left')
+                ->join($join1, $wjoin1, 'left')
+                ->join($join2, $wjoin2, 'left')
                 ->where(['nIdCompra' =>  $id])
                 ->findAll();
         else
             return $this
-                ->join($join1,$wjoin1,'left')
+                ->join($join1, $wjoin1, 'left')
+                ->join($join2, $wjoin2, 'left')
                 ->where(['nIdCompra' =>  $id])
                 ->paginate($paginado);
     }
-    
+
     public function getRegistrosByField($field = 'nIdCompra', $val = false)
     {
         return $this->where([$field => $val])->findAll();
     }
-    
 }
 /***********
  * 
@@ -80,4 +90,3 @@ CREATE TABLE `cpcompradetalle` (
 
  * 
  ***********/
-?>

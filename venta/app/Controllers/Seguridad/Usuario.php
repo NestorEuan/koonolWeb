@@ -16,9 +16,9 @@ class Usuario extends BaseController
         $model = new UsuarioMdl();
 
         $data['registros'] =  $model->getRegistros(
-            false,
-            8,
-            intval($this->nIdUsuario) == 1 ? false : $this->nIdSucursal,
+            false, 
+            true, 
+            intval($this->nIdUsuario) == 1 ? false : $this->nIdSucursal, 
             ($_SESSION['perfilUsuario'] == '-1')
         );
         $data['pager'] = $model->pager;
@@ -26,7 +26,7 @@ class Usuario extends BaseController
 
         echo view('templates/header', $this->dataMenu);
         echo view('seguridad/usuarios', $data);
-        echo view('templates/footer');
+        echo view('templates/footer', $this->dataMenu);
     }
 
     public function permisodescuento()
@@ -35,14 +35,14 @@ class Usuario extends BaseController
         $model = new UsuarioMdl();
         $data = [
             'registros' => $model->getRegistros(
-                false,
-                8,
-                intval($this->nIdUsuario) == 1 ? false : $this->nIdSucursal,
+                false, 
+                true, 
+                intval($this->nIdUsuario) == 1 ? false : $this->nIdSucursal, 
                 intval($this->nIdUsuario) == 1,
                 $this->request->getVar('sDescri') ?? false,
-                true, true
+                true,
+                true
             ),
-
             'pager' => $model->pager,
             'permisoDescuentos' => isset($this->aPermiso['oPermitirDescuentos']),
             'permisoCambiarPrecio' => isset($this->aPermiso['oCambioPrecio']),
@@ -59,7 +59,7 @@ class Usuario extends BaseController
 
         echo view('templates/header', $this->dataMenu);
         echo view('seguridad/usuariosdescuentos', $data);
-        echo view('templates/footer');
+        echo view('templates/footer', $this->dataMenu);
     }
 
     public function activadescuento($id, $activa)
@@ -167,7 +167,7 @@ class Usuario extends BaseController
         $mdlPerfil = new PerfilMdl();
         $mdlSucursal = new SucursalMdl();
 
-        if ($this->request->getMethod() == 'post') {
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             if ($tipoaccion === 'b') {
                 $model->delete($id);
                 echo 'oK';
@@ -223,7 +223,7 @@ class Usuario extends BaseController
 
         $header = $logeado === 'login' ? 'templates/headerlogin' : 'templates/header';
 
-        if ($this->request->getMethod() === 'post') {
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             $a = $this->validaContrasenia();
             if ($a === false) {
                 //Ir a desktop
@@ -240,7 +240,7 @@ class Usuario extends BaseController
                 $data['error'] = $a['amsj'];
                 echo view($header);
                 echo view('seguridad/updtpass', $data);
-                echo view('templates/footer');
+                echo view('templates/footer', $this->dataMenu);
                 return;
             }
         }
@@ -249,7 +249,7 @@ class Usuario extends BaseController
 
         echo view($header, $this->dataMenu ?? []);
         echo view('seguridad/updtpass', $data);
-        echo view('templates/footer');
+        echo view('templates/footer', $this->dataMenu);
     }
 
     public function validaContrasenia()

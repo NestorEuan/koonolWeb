@@ -39,12 +39,16 @@
                             <td class="text-center"><?= $r['cOrigen'] == 'ventas' ? 'Remision' : 'Traspaso' ?></td>
                             <td class="text-center"><?= $r['cOrigen'] == 'ventas' ? $r['nFolioRemision'] : $r['nFolioTraspaso'] ?></td>
                             <td class="text-center"><?= $r['fechas'] ?></td>
-                            <td class="text-center"><?= round(floatval($r['peso']) / 1000, 3) > 0.49 ? sprintf('%01.2f Tons', floatval($r['peso']) / 1000) : round(floatval($r['peso']), 3) . 'Kg.'   ?></td>
+                            <td class="text-center"><?= round(floatval($r['peso']) / 1000, 3) > 1.00 ? sprintf('%01.2f Tons', floatval($r['peso']) / 1000) : round(floatval($r['peso']), 3) . 'Kg.'   ?></td>
                             <td class="text-center">
                                 <i class="bi bi-truck text-primary me-2 fw-bold" data-bs-toggle="modal" data-bs-target="#frmModal" data-llamar="<?= 'viaje/envio/' . $modoAccionEnEnvio . '/' . $k . ($idViaje == '' ? '' : '/' . $idViaje) ?>" style="cursor:pointer;" title="Seleccionar productos para viaje"></i>
                                 <?php if ($tipoAccion != 's') : ?>
                                     <i class="bi bi-entrega-mano-fill text-primary me-2 fw-bold" data-bs-toggle="modal" data-bs-target="#frmModal" data-llamar="<?= 'viaje/envio/n/' . $k . ($idViaje == '' ? '' : '/' . $idViaje) ?>" style="cursor:pointer;" title="Asignar para envio en otra sucursal"></i>
-                                    <i class="bi bi-entrega-mano-fill3 text-primary me-2 fw-bold fs-5" data-bs-toggle="modal" data-bs-target="#mdConfirma" data-mod-msj="Reasignar productos restantes del envio a ventas?" data-mod-titulo="Confirmar acción" data-llamar="<?= 'viaje/envio/r/' . $k . ($idViaje == '' ? '/0' : '/' . $idViaje) . '/' . ($r['cOrigen'] == 'ventas' ? $r['nIdOrigen'] : '0') ?>" style="cursor:pointer;" title="Para reasignar en ventas"></i>
+                                    <?php if ($r['cOrigen'] == 'ventas') : ?>
+                                        <i class="bi bi-entrega-mano-fill3 text-primary me-2 fw-bold fs-5" data-bs-toggle="modal" data-bs-target="#mdConfirma" data-mod-msj="Reasignar productos restantes del envio a ventas?" data-mod-titulo="Confirmar acción" data-llamar="<?= 'viaje/envio/r/' . $k . ($idViaje == '' ? '/0' : '/' . $idViaje) . '/' . ($r['cOrigen'] == 'ventas' ? $r['nIdOrigen'] : '0') ?>" style="cursor:pointer;" title="Para reasignar en ventas"></i>
+                                    <?php else : ?>
+                                        <i class="bi bi-entrega-mano-fill3 text-secondary me-2 fw-bold fs-5" title="Para reasignar en ventas"></i>
+                                    <?php endif; ?>
                                 <?php endif; ?>
 
                             </td>
@@ -83,10 +87,13 @@
             <div class="pb-1 text-center border-bottom border-dark">
                 <label class="form-label text-start pe-2">Peso</label>
                 <label class="col-form-label py-1 px-2 text-center bg-secondary rounded-2 bg-opacity-25" style="width:100px;" id="txtPesoTotalViaje">
-                    <?= round($nPesoViaje / 1000, 3) > 0.49 ? sprintf('%01.2f Tons', $nPesoViaje / 1000) : round($nPesoViaje, 3) . 'Kg.'   ?>
+                    <?= round($nPesoViaje / 1000, 3) > 1.00 ? sprintf('%01.2f Tons', $nPesoViaje / 1000) : round($nPesoViaje, 3) . 'Kg.'   ?>
                 </label>
             </div>
             <?php if ($tipoAccion == 'e' || $tipoAccion == 'a') : ?>
+                <div class="text-center pt-2">
+                    <button type="button" class="btn btn-outline-primary" id="btnResumirViaje" data-bs-toggle="modal" data-bs-target="#frmModal" data-llamar="viaje/resumen"> Resumen Viaje</button>
+                </div>
                 <div class="d-flex justify-content-around align-items-center pt-2">
                     <button type="button" class="btn btn-outline-secondary" id="btnBack">Regresar</button>
                     <button type="button" class="btn btn-outline-primary" id="btnGuardarViaje">Guardar Viaje</button>
@@ -98,9 +105,22 @@
             <?php elseif ($tipoAccion == 's') : ?>
                 <div class="row pt-2">
                     <?php if ($nContReg > 0) : ?>
-                        <button type="button" class="col-12 btn btn-outline-primary mb-2" id="btnImprimirAsignarViaje">
-                            Imprimir y Asignar Viaje Para Cargar
-                        </button>
+                        <?php if ($estadoViaje == '0') : ?>
+                            <button type="button" class="col-12 btn btn-outline-primary mb-2" id="btnImprimirAsignarViaje">
+                                <strong>Asignar</strong> Viaje Para Cargar
+                            </button>
+                        <?php else : ?>
+                            <h5 class="my-2 py-1 text-center">Imprimir Viaje Para Cargar:</h5>
+                            <button type="button" class="col-12 btn btn-outline-primary mb-2" id="btnImprimirAsignarViaje3">
+                                Imprimir Envios (media carta)
+                            </button>
+                            <button type="button" class="col-12 btn btn-outline-primary mb-2" id="btnImprimirAsignarViaje2">
+                                Imprimir Listado Bodega
+                            </button>
+                            <button type="button" class="col-12 btn btn-outline-primary mb-2" id="btnDesAsignarViaje" data-bs-toggle="modal" data-bs-target="#mdConfirma" data-mod-msj="Recuperar Viaje de la Asignacion?" data-mod-titulo="Confirmar acción" data-llamar="<?= 'viaje/r/' . $idViaje ?>" data-esrecuperar="1">
+                                Recupera Viaje de la Asignacion
+                            </button>
+                        <?php endif; ?>
                     <?php endif; ?>
                     <button type="button" class="col-12 btn btn-outline-secondary" id="btnBack">Regresar</button>
                 </div>
@@ -132,6 +152,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
         let appViaje = {
+            tipoAccion: '<?= $tipoAccion ?>',
             arrEnvio: [],
             init: function() {
                 $('#frmModal').on('show.bs.modal', appViaje.procesaEnvio);
@@ -142,6 +163,12 @@
                 });
                 $('#btnGuardarViaje').on('click', appViaje.validaDatos);
                 $('#btnImprimirAsignarViaje').on('click', appViaje.asignaViaje);
+                $('#btnImprimirAsignarViaje2').on('click', {
+                    tipo: '1'
+                }, appViaje.imprListadoAlmacen);
+                $('#btnImprimirAsignarViaje3').on('click', {
+                    tipo: '2'
+                }, appViaje.imprListadoAlmacen);
 
                 let ele = $('#cntTablaEnvios')[0];
                 ele.style.height = ($('#mainCnt').height() - $('#cntTitulo').height()).toString() + 'px';
@@ -164,7 +191,7 @@
             procesando: false,
             validaDatos: function() {
                 let conta = $('#cntTablaEnvios input[type="checkbox"]:checked').length;
-                if (conta == 0) {
+                if (appViaje.tipoAccion == 'a' && conta == 0) {
                     miGlobal.muestraAlerta('No se ha seleccionado ningun envio para el viaje', 'viajes', 1500);
                     return false;
                 }
@@ -176,26 +203,58 @@
                 if (appViaje.procesando) return;
                 appViaje.procesando = true;
                 $('#btnGuardarViaje')[0].disabled = true;
+                miGlobal.toggleBlockPantalla('Guardando Viaje...');
                 $.post('<?= $baseURL ?>', {
                         'observacion': $('#sObservacionViaje').val(),
                         'fecha': $('#fechaProg').val()
                     }, null, 'json')
                     .done(function(data, textStatus, jqxhr) {
-                        if (data.nuevo == '1')
-                            location.assign(data.url + '?page=200');
-                        else
-                            $('#btnBack').click();
+                        if (data.error == '1') {
+                            miGlobal.toggleBlockPantalla('');
+                            miGlobal.muestraAlerta(data.msj, 'viajes', 4000);
+                            $.post(baseURL + '/viaje/refrescaDetalleEnvios/' + data.idviaje + '/e')
+                                .done(function(data, textStatus, jqxhr) {
+                                    $('#cntTablaEnviosBody').html(data);
+                                    appViaje.procesando = false;
+                                    $('#btnGuardarViaje')[0].disabled = false;
+                                }).fail(function(jqxhr, textStatus, err) {
+                                    console.log('fail', jqxhr, textStatus, err);
+                                    appViaje.procesando = false;
+                                    $('#btnGuardarViaje')[0].disabled = false;
+                                });
+                        } else {
+                            if (data.nuevo == '1')
+                                location.assign(data.url + '?page=1');
+                            else
+                                $('#btnBack').click();
+                        }
                     }).fail(function(jqxhr, textStatus, err) {
                         console.log('fail', jqxhr, textStatus, err);
-                        appViaje.procesando = true;
-                        $('#btnGuardarViaje')[0].disabled = true;
+                        appViaje.procesando = false;
+                        miGlobal.toggleBlockPantalla('');
+                        $('#btnGuardarViaje')[0].disabled = false;
                     });
 
             },
 
             asignaViaje: function() {
-                window.open('<?= $baseURLimp ?>');
-                history.back();
+                if (appViaje.procesando) return;
+                appViaje.procesando = true;
+                $('#btnImprimirAsignarViaje')[0].disabled = true;
+                miGlobal.toggleBlockPantalla('Asignando Viaje...');
+                $.post('<?= base_url('viaje/s/' . $idViaje) ?>', {}, null, 'json')
+                    .done(function(data, textStatus, jqxhr) {
+                        if (data.ok == '1') location.reload();
+                    }).fail(function(jqxhr, textStatus, err) {
+                        console.log('fail', jqxhr, textStatus, err);
+                        appViaje.procesando = true;
+                        $('#btnImprimirAsignarViaje')[0].disabled = false;
+                        miGlobal.toggleBlockPantalla('');
+                    });
+            },
+
+            imprListadoAlmacen: function(e) {
+                window.open('<?= base_url('viaje/imprime/' . $idViaje) ?>' + '/' + e.data.tipo);
             }
 
         };
@@ -204,6 +263,7 @@
         let appConfirma = {
             url: '',
             frmsubmit: '',
+            esRecuperar: '',
             init: function() {
                 $('#mdConfirma').on('show.bs.modal', appConfirma.initDialogo);
                 $('#btnSiConfirmar').on('click', appConfirma.enviar);
@@ -218,6 +278,7 @@
 
                 appConfirma.url = a.data('llamar');
                 appConfirma.frmsubmit = a.data('frmsubmit') ?? '';
+                appConfirma.esRecuperar = a.data('esrecuperar') == "1" ? '1' : '0';
                 if (titulo != '') qBody.find('> h3').html(titulo);
                 if (msj != '') qBody.find('> p').html(msj);
             },
@@ -238,6 +299,10 @@
                         e.target.disabled = false;
                         appConfirma.enProceso = false;
                     } else {
+                        if(appConfirma.esRecuperar == '1') {
+                            history.back();
+                            return;
+                        }
                         $('#cntTablaEnviosBody').html(data);
                         $('#btnNoConfirmar').click();
                     }

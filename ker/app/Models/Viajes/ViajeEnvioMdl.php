@@ -3,6 +3,8 @@
 namespace App\Models\Viajes;
 
 use CodeIgniter\Model;
+use DateInterval;
+use DateTime;
 
 class ViajeEnvioMdl extends Model
 {
@@ -10,7 +12,7 @@ class ViajeEnvioMdl extends Model
 
     protected $allowedFields = [
         'nIdViaje', 'nIdEnvio', 'cEstatus',
-        'sObservacion', 'fPeso'
+        'sObservacion', 'fPeso', 'dtAlta'
     ];
 
     protected $primaryKey = 'nIdViajeEnvio';
@@ -66,5 +68,44 @@ class ViajeEnvioMdl extends Model
                 'enviajeenvio.nIdEnvio' => $idEnvio,
                 'enviajeenvio.nIdViaje' => $idViaje
             ])->findAll();
+    }
+
+    public function getArticuloEnEnvio($idEnvio, $idArticulo)
+    {
+        return $this->select('enviajeenvio.nIdViajeEnvio, ' .
+            'enviajeenvio.nIdEnvio, enviajeenvio.nIdViaje, d.cModoEnv, d.fPorRecibir,' .
+            'd.nIdViajeEnvioDetalle, v.cEstatus, v.nIdSucursal, s.sDescripcion AS nomSuc')
+            ->join('enviajeenviodetalle d', 'enviajeenvio.nIdViajeEnvio = d.nIdViajeEnvio', 'inner')
+            ->join('enviaje v', 'enviajeenvio.nIdViaje = v.nIdViaje', 'inner')
+            ->join('alsucursal s', 'v.nIdSucursal = s.nIdSucursal', 'inner')
+            ->where('enviajeenvio.nIdEnvio', $idEnvio)
+            ->where('d.nIdArticulo', $idArticulo)
+            ->where('d.fPorRecibir >', 0)
+            ->findAll();
+    }
+
+    public function getEnviosConModoENV($idArt, $idSuc, DateTime $fIni, DateTime $fFin)
+    {
+        $aWhere = [
+            'enviajeenvio.dtAlta >=' => $fIni->format('Y-m-d'),
+            'enviajeenvio.dtAlta <' => $fFin->add(new DateInterval('P1D'))->format('Y-m-d'),
+            'enviajeenvio.cEstatus' => '1',
+            'enviajeenvio.nIdEnvio >' => 0,
+            'b.cModoEnv' => '1',
+        ];
+        if ($idArt != '') $aWhere['b.nIdArticulo'] = $idArt;
+        if ($idSuc != '') $aWhere['c.nIdSucursal'] = $idSuc;
+
+        return $this->select('enviajeenvio.*, c.nIdSucursal, c.cEstatus, b.nIdArticulo, b.fPorRecibir, ' . 
+            ' d.cOrigen AS oriDoc, ' .
+            'IF(d.cOrigen = \'ventas\', v.nFolioRemision, d.nIdOrigen) as folioDoc, ' .
+            'art.sDescripcion AS nomArt '
+            , false)
+            ->join('enviajeenviodetalle b', 'enviajeenvio.nIdViajeEnvio = b.nIdViajeEnvio', 'inner')
+            ->join('enviaje c', 'enviajeenvio.nIdViaje = c.nIdViaje', 'inner')
+            ->join('enenvio d', 'enviajeenvio.nIdEnvio = d.nIdEnvio', 'inner')
+            ->join('vtventas v', 'd.nIdOrigen = v.nIdVentas', 'left')
+            ->join('alarticulo art', 'b.nIdArticulo = art.nIdArticulo', 'inner')
+            ->where($aWhere)->findAll();
     }
 }

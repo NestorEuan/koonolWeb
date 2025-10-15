@@ -26,6 +26,7 @@
                 <tbody id="cntTablaEnviosBody">
                     <?php $nPesoViaje = 0; ?>
                     <?php $nPar = true; ?>
+                    <?php $sizeIcons = $esMobil ? 'fs-1' : 'fs-5'; ?>
                     <?php foreach ($registros as $k => $r) : ?>
                         <?php
                         $nPesoViaje += round(floatval($r['peso']), 3);
@@ -37,15 +38,15 @@
                             <td class="text-center"><?= $r['cOrigen'] == 'ventas' ? 'Remision' : 'Traspaso' ?></td>
                             <td class="text-center"><?= $r['cOrigen'] == 'ventas' ? $r['nFolioRemision'] : $r['nFolioTraspaso'] ?></td>
                             <td class="text-center"><?= $r['fechas'] ?></td>
-                            <td class="text-center"><?= round(floatval($r['peso']) / 1000, 3) > 0.49 ? sprintf('%01.2f Tons', floatval($r['peso']) / 1000) : round(floatval($r['peso']), 3) . 'Kg.'   ?></td>
+                            <td class="text-center"><?= round(floatval($r['peso']) / 1000, 3) > 1.00 ? sprintf('%01.2f Tons', floatval($r['peso']) / 1000) : round(floatval($r['peso']), 3) . 'Kg.'   ?></td>
                             <td class="text-center">
-                                <i class="bi bi-eye-fill text-primary me-2 fw-bold" data-bs-toggle="modal" data-bs-target="#frmModal" data-llamar="<?= 'viaje/envio/c/' . $k . ($idViaje == '' ? '' : '/' . $idViaje) ?>" style="cursor:pointer;" title="Consultar productos para viaje"></i>
-                                
-                                <?php if($modoAccionEnEnvio == 'e' && $permisoCapDevoluciones): ?>
-                                    <i class="bi bi-box-return2 text-primary me-2 fw-bold fs-5" data-bs-toggle="modal" data-bs-target="#frmModal" data-llamar="<?= 'viajectrl/devolucion/e/' . $k . ($idViaje == '' ? '' : '/' . $idViaje) ?>" style="cursor:pointer;" title="Devolucion productos del viaje"></i>
-                                <?php else: ?>
-                                    <?php if($r['conDevolucion'] == '1'): ?>
-                                        <i class="bi bi-box-return2 text-primary me-2 fw-bold fs-5" data-bs-toggle="modal" data-bs-target="#frmModal" data-llamar="<?= 'viajectrl/devolucion/c/' . $k . ($idViaje == '' ? '' : '/' . $idViaje) ?>" style="cursor:pointer;" title="Productos Devueltos"></i>
+                                <i class="bi bi-eye-fill text-primary me-2 fw-bold <?= $sizeIcons ?>" data-bs-toggle="modal" data-bs-target="#frmModal" data-llamar="<?= 'viaje/envio/c/' . $k . ($idViaje == '' ? '' : '/' . $idViaje) ?>" style="cursor:pointer;" title="Consultar productos para viaje"></i>
+
+                                <?php if ($modoAccionEnEnvio == 'e' && $permisoCapDevoluciones) : ?>
+                                    <i class="bi bi-box-return2 text-primary me-2 fw-bold <?= $sizeIcons ?>" data-bs-toggle="modal" data-bs-target="#frmModal" data-llamar="<?= 'viajectrl/devolucion/e/' . $k . ($idViaje == '' ? '' : '/' . $idViaje) ?>" style="cursor:pointer;" title="Devolucion productos del viaje"></i>
+                                <?php else : ?>
+                                    <?php if ($r['conDevolucion'] == '1') : ?>
+                                        <i class="bi bi-box-return2 text-primary me-2 fw-bold <?= $sizeIcons ?>" data-bs-toggle="modal" data-bs-target="#frmModal" data-llamar="<?= 'viajectrl/devolucion/c/' . $k . ($idViaje == '' ? '' : '/' . $idViaje) ?>" style="cursor:pointer;" title="Productos Devueltos"></i>
                                     <?php endif; ?>
                                 <?php endif; ?>
 
@@ -56,10 +57,10 @@
                             <td colspan="6" class="py-0">
                                 <div class="row">
                                     <div class="col">
-                                    <?= $r['nomCli'] . ' / ' . $r['sEnvEntrega'] ?>
+                                        <?= $r['nomCli'] . ' / ' . $r['sEnvEntrega'] ?>
                                     </div>
                                     <div class="col">
-                                    <?= $r['sEnvDireccion'] . ' ' . $r['sEnvColonia'] . ' ' . $r['sEnvReferencia'] ?>
+                                        <?= $r['sEnvDireccion'] . ' ' . $r['sEnvColonia'] . ' ' . $r['sEnvReferencia'] ?>
                                     </div>
                                 </div>
                             </td>
@@ -94,21 +95,31 @@
             <div class="pb-1 text-center border-bottom border-dark">
                 <label class="form-label text-start pe-2">Peso</label>
                 <label class="col-form-label py-1 px-2 text-center bg-secondary rounded-2 bg-opacity-25" style="width:100px;" id="txtPesoTotalViaje">
-                    <?= round($nPesoViaje / 1000, 3) > 0.49 ? sprintf('%01.2f Tons', $nPesoViaje / 1000) : round($nPesoViaje, 3) . 'Kg.'   ?>
+                    <?= round($nPesoViaje / 1000, 3) > 1.00 ? sprintf('%01.2f Tons', $nPesoViaje / 1000) : round($nPesoViaje, 3) . 'Kg.'   ?>
                 </label>
             </div>
+            <?php $displayButtons = $esMobil ? 'flex-column-reverse' : ' align-items-center '; ?>
+            <?php $displayMargin = $esMobil ? 'mt-3' : ''; ?>
+
             <?php if ($tipoAccion == 's') : ?>
-                <div class="d-flex justify-content-around align-items-center pt-2">
-                    <button type="button" class="btn btn-outline-secondary" id="btnBack">Regresar</button>
-                    <button type="button" class="btn btn-outline-primary" id="btnGuardarViaje">Viaje Cargado</button>
+                <div class="d-flex <?= $displayButtons ?> justify-content-around  pt-2">
+                    <button type="button" class="btn btn-outline-secondary <?= $displayMargin ?>" id="btnBack">Regresar</button>
+                    <?php if ($inventarioIncompleto == '') : ?>
+                        <button type="button" class="btn btn-outline-primary" id="btnGuardarViaje">Viaje Cargado</button>
+                    <?php endif; ?>
                 </div>
+                <?php if (!($inventarioIncompleto == '')) : ?>
+                    <div class="row text-danger px-4 fw-bold">
+                        Inventario fisico no disponible en los envios: <?= $inventarioIncompleto ?>
+                    </div>
+                <?php endif; ?>
             <?php elseif ($tipoAccion == 'f') : ?>
-                <div class="d-flex justify-content-around align-items-center pt-2">
-                    <button type="button" class="btn btn-outline-secondary" id="btnBack">Regresar</button>
+                <div class="d-flex <?= $displayButtons ?> justify-content-around pt-2">
+                    <button type="button" class="btn btn-outline-secondary <?= $displayMargin ?>" id="btnBack">Regresar</button>
                     <button type="button" class="btn btn-outline-primary" id="btnGuardarViaje">Viaje Finalizado</button>
                 </div>
             <?php elseif ($tipoAccion == 'c') : ?>
-                <div class="d-flex justify-content-around align-items-center pt-2">
+                <div class="d-flex <?= $displayButtons ?> justify-content-around pt-2">
                     <button type="button" class="btn btn-outline-primary" id="btnBack">Regresar</button>
                 </div>
             <?php endif; ?>
@@ -166,6 +177,7 @@
                 if (appViaje.procesando) return;
                 appViaje.procesando = true;
                 $('#btnGuardarViaje')[0].disabled = true;
+                miGlobal.toggleBlockPantalla('Guardando Viaje...');
                 $.post('<?= $baseURL ?>', {
                         'nIdChofer': $('#nIdChofer').val()
                     }, null, 'json')
@@ -178,6 +190,7 @@
                         console.log('fail', jqxhr, textStatus, err);
                         appViaje.procesando = true;
                         $('#btnGuardarViaje')[0].disabled = true;
+                        miGlobal.toggleBlockPantalla('');
                     });
 
             }

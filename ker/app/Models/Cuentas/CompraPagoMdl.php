@@ -3,6 +3,8 @@
 namespace App\Models\Cuentas;
 
 use CodeIgniter\Model;
+use DateInterval;
+use DateTime;
 
 class CompraPagoMdl extends Model
 {
@@ -11,7 +13,7 @@ class CompraPagoMdl extends Model
     protected $allowedFields = [
         'nIdCompra', 'dtPago',
         'nIdTipoPago', 'fPago', 'nIdUsuario', 
-        'cEstadoPago'
+        'cEstadoPago', 'cObservaciones'
     ];
 
     protected $primaryKey = 'nIdCompraPago';
@@ -49,6 +51,75 @@ class CompraPagoMdl extends Model
     public function getRegistrosByName($val = false)
     {
         return $this->like(['sDescripcion' => $val])->findAll();
+    }
+
+    public function updtPrecio( $idArt, $fImporte )
+    {
+        $this->set('nPrecio', $fImporte )
+            ->where([ 'nIdArticulo' => $idArt ])
+            ->update();
+    }
+
+    public function getLstRegs($id = 0, $idSuc = false, $aCond = null)
+    {
+        $this->select("cpcomprapago.*, p.sLeyenda")
+            ->join("vttipopago p", "cpcomprapago.nIdTipoPago = p.nIdTipoPago", 'inner');
+
+        if ($id > 0) {
+            return $this->where("cpcomprapago.nIdCompra", intval($id))
+                ->orderBy("cpcomprapago.dtAlta", 'desc')->findAll();
+        }
+
+        $wFec = '';
+        $wCli = '';
+        $wEdo = '';
+        $wSuc = '';
+
+        if ($aCond != null) {
+            if ($aCond['dIni'] != null && $aCond['Edo'] != '0') {
+                $wFec = 'c.dtAlta >= \'' . $aCond['dIni'] . '\' and ' .
+                    'c.dtAlta < \'' . ((new DateTime($aCond['dFin']))
+                        ->add(new DateInterval('P1D'))
+                        ->format('Y-m-d')) . '\'';
+            }
+
+            switch ($aCond['Edo']) {
+                case '0':
+                    $wEdo = 'c.fSaldo > 0';
+                    break;
+                case '1':
+                    $wEdo = 'c.fSaldo = 0';
+                    break;
+            }
+            if ($aCond['nIdProveedor'] != '') $wCli = 'c.nIdProveedor = ' . $aCond['nIdProveedor'];
+            if ($idSuc != false) $wSuc = 'c.nIdSucursal = ' . $idSuc;
+            $a = $wFec;
+            if ($wEdo != '') {
+                if ($a == '')
+                    $a = $wEdo;
+                else
+                    $a .= ' and ' . $wEdo;
+            }
+            if ($wCli != '') {
+                if ($a == '')
+                    $a = $wCli;
+                else
+                    $a .= ' and ' . $wCli;
+            }
+            if ($wSuc != '') {
+                if ($a == '')
+                    $a = $wSuc;
+                else
+                    $a .= ' and ' . $wSuc;
+            }
+            if ($aCond['Edo'] == '0')
+                $where = "$this->table.nIdCompra in (select c.nIdCompra from cpcompra c where $a )";
+            else
+                $where = "$this->table.nIdCompra in (select c.nIdCompra from cpcompra c where $a )";
+        }
+        $this->where($where, null, false);
+
+        return $this->findAll();
     }
 
 }

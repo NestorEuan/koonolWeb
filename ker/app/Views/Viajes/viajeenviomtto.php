@@ -1,3 +1,16 @@
+<?php
+if ($regEnv == null) {
+    $regEnv = [
+        'cOrigen' => '',
+        'nIdOrigen' => '',
+        'nFolioRemision' => '',
+        'sEnvEntrega' => '',
+        'sEnvDireccion' => '',
+        'sEnvColonia' => '',
+        'sEnvReferencia' => ''
+    ];
+}
+?>
 <div class="container-fluid position-relative">
     <div id="viajesenviowAlert">
         <div class="alert alert-danger alert-dismissible position-absolute" style="display:none; top:5px; left:5px;z-index:1900;" role="alert">
@@ -19,7 +32,7 @@
                         <th class="text-center">Descripción</th>
                         <th class="text-center">Solicitado</th>
                         <th class="text-center">Enviado</th>
-                        <th class="text-center">Disponible</th>
+                        <th class="text-center"><?= $tipoAccion == 'e' ? 'Disponible' : 'Existencia<br>Fisica<br>Actual' ?></th>
                         <th class="text-center">Por Enviar</th>
                         <th class="text-center" style="width:90px;">Peso</th>
                     </tr>
@@ -46,7 +59,7 @@
                             <td class="text-center"><?= round(floatval($r['fRecibido']), 3) ?></td>
                             <td class="text-center"><?= round(floatval($r['disponible']), 3) ?></td>
                             <td style="width:100px;"><input type="text" class="form-control form-control-sm text-end py-0 <?= $fondo ?>" name="txtEnviar<?= $r['nIdArticulo'] ?>" id="txtEnviar<?= $r['nIdArticulo'] ?>" <?= $tipoAccion == 'e' ? '' : 'readonly' ?> <?= $tipoAccion == 'e' && !$bDeshabilitado ? '' : 'disabled' ?> value="<?= $r['capturada'] ?>"></td>
-                            <td class="text-center" id="txtPesoProducto<?= $r['nIdArticulo'] ?>"><?= round($nPesoProd / 1000, 3) > 0.49 ? round($nPesoProd / 1000, 3) . ' Ton' : round($nPesoProd, 3) . ' Kg' ?></td>
+                            <td class="text-center" id="txtPesoProducto<?= $r['nIdArticulo'] ?>"><?= round($nPesoProd / 1000, 3) > 1.00 ? round($nPesoProd / 1000, 3) . ' Ton' : round($nPesoProd, 3) . ' Kg' ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -126,7 +139,11 @@
                 ele.style.overflow = "auto";
                 appViajeEnvio.calculaPesoTotal();
                 appViajeEnvio.arrJqTxts = $('#cntTablaEnvio').find('input[type="text"]');
-                $('#cntTablaEnvio input[type="text"]').filter(':enabled').first().select();
+                appViajeEnvio.arrJqTxts.filter(':enabled').eq(0).select();
+                if (appViajeEnvio.cOrigen == '' && appViajeEnvio.nIdOrigen == '') {
+                    $('#btnGuardarEnvio')[0].disabled = true;
+                    miGlobal.muestraAlerta('Ventas a cancelado el envio', 'frmModal', 2000);
+                }
             },
             onInput: function(e) {
                 miGlobal.valNumero(e, appViajeEnvio, {
@@ -198,9 +215,11 @@
                         'capturada': appViajeEnvio.arrEnvio[i].capturada,
                         'modenv': appViajeEnvio.arrEnvio[i].cModoEnv,
                         'peso': appViajeEnvio.arrEnvio[i].fPeso,
-                        'cSinExistencia': appViajeEnvio.arrEnvio[i].cSinExistencia
+                        'cSinExistencia': appViajeEnvio.arrEnvio[i].cSinExistencia,
+                        'sobreComprometido': appViajeEnvio.arrEnvio[i].sobrecomprometido,
                     });
                 }
+                miGlobal.toggleBlockPantalla('Agregando Envio al Viaje...');
                 $.post('<?= $baseURL ?>', {
                         'cOrigen': appViajeEnvio.cOrigen,
                         'nIdOrigen': appViajeEnvio.nIdOrigen,
@@ -211,10 +230,12 @@
                     .done(function(data, textStatus, jqxhr) {
                         $('#cntTablaEnviosBody').html(data);
                         $('#btnSalirDeEnvio').click();
+                        miGlobal.toggleBlockPantalla('');
                     }).fail(function(jqxhr, textStatus, err) {
                         console.log('fail', jqxhr, textStatus, err);
                         appViajeEnvio.procesando = true;
                         $('#btnGuardarEnvio')[0].disabled = true;
+                        miGlobal.toggleBlockPantalla('');
                     });
             },
 
@@ -251,7 +272,7 @@
             formateaPeso: function(peso) {
                 n = appViajeEnvio.redondea((peso / 1000), 3); // redondeoa tres decimales
 
-                if (n > 0.49)
+                if (n > 1.00)
                     s = appViajeEnvio.redondea(n, 2).toString() + ' Ton';
                 else
                     s = appViajeEnvio.redondea(peso, 2).toString() + ' Kg';

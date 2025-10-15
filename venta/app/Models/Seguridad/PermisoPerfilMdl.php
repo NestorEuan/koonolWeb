@@ -8,7 +8,7 @@ class PermisoPerfilMdl extends Model
 {
     protected $table = 'sgpermisoperfil';
 
-    protected $allowedFields = [ 'nIdPerfil', 'nIdMenu' ];
+    protected $allowedFields = ['nIdPerfil', 'nIdMenu'];
 
     protected $primaryKey = 'nIdPermisoPerfil';
 
@@ -26,12 +26,20 @@ class PermisoPerfilMdl extends Model
     public function leePermisosPerfil($id)
     {
         return $this->select('nIdPermisoPerfil, nIdMenu')
-        ->where('nIdPerfil', $id)
-        ->orderBy('nIdPermisoPerfil', 'ASC')
-        ->findAll();
+            ->where('nIdPerfil', $id)
+            ->orderBy('nIdPermisoPerfil', 'ASC')
+            ->findAll();
     }
-    
-    
+
+    public function getPermisos($idPerfil, $sLink = "")
+    {
+        $this->select("{$this->table}.nIdPerfil")
+            ->join("sgmenu m", "m.nIdMenu = {$this->table}.nIdMenu", "left")
+            ->where("{$this->table}.nIdPerfil", $idPerfil)->where('m.sLink', $sLink);
+        //$sql = $this->builder()->getCompiledSelect(false);
+        return $this->findAll();
+    }
+
     public function getRegistros($id = 0)
     {
         if ($id === 0) {
@@ -39,13 +47,12 @@ class PermisoPerfilMdl extends Model
         }
         return $this->where(['nIdPerfil' =>  $id])->first();
     }
-    
+
     public function getRegistroByFld($sFld, $val = false)
     {
         return $this->where([$sFld => $val])->first();
     }
-
- }
+}
 
 /***********
  *

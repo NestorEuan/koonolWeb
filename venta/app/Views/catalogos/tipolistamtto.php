@@ -10,10 +10,12 @@
         <label for="cTipo" class="form-label">Abreviatura</label>
         <?php generaCampoTexto('cTipo', $error ?? false, null, $registro ?? null, $modo, '', 'maxlength="2"'); ?>
     </div>
-    <div class="mb-3">
-        <?php generaCampoTexto('bImprimirNota', $error ?? false, 'checkbox', $registro ?? null, $modo,'','',null,'1'); ?>
-        <label for="bImprimirNota" class="form-check-label">Es precio tapado</label>
-    </div>
+    <?php if ($bTapado) : ?>
+        <div class="mb-3">
+            <?php generaCampoTexto('bImprimirNota', $error ?? false, 'checkbox', $registro ?? null, $modo, '', '', null, '1'); ?>
+            <label for="bImprimirNota" class="form-check-label">Es precio tapado</label>
+        </div>
+    <?php endif ?>
 </form>
 <hr>
 <div class="d-flex justify-content-end">

@@ -10,9 +10,11 @@ class UsuarioMdl extends Model
 
     protected $allowedFields = [
         'sLogin', 'sNombre', 'sPsw', 'cNuevo', 'nIdPerfil', 'nIdSucursal',
+        'idLastSucursal',
         'bDaDescuento', 'bDaPrecio', 'bPrecioSinRecal', 'bDaVtaSinDisponibles',
         'bDivFacNoValidar', 'bCancelarRemision', 'bMantenerPrecioCotiza',
-        'bCambioFechaFactura', 'bPermitirCredito'
+        'bCambioFechaFactura', 'bPermitirCredito', 'bCambioCliente',
+        'bEntregaModoENV', 'sMailCotizacion', 'cEdoBaja'
     ];
 
     protected $primaryKey = 'nIdUsuario';
@@ -27,16 +29,24 @@ class UsuarioMdl extends Model
 
     protected $updatedField = '';
 
-    public function getRegistros($id = false, $paginado = false, $idSucursal = false, $esSuper = false)
+    public function getRegistros($id = false, $paginado = false, $idSucursal = false, $esSuper = false, $filtro = false, $conActuales = false, $soloActivos = false)
     {
         if ($id === false) {
             $this->select('sgusuario.*, alsucursal.sDescripcion as nomSucursal, sgperfil.sPerfil as nomPerfil')
                 ->join('alsucursal', 'alsucursal.nIdSucursal = sgusuario.nIdSucursal', 'left')
                 ->join('sgperfil', 'sgperfil.nIdPerfil = sgusuario.nIdPerfil', 'left');
-            if ($idSucursal) $this->where('sgusuario.nIdSucursal', $idSucursal);
+            if ($idSucursal) {
+                if ($conActuales)
+                    $this->where('(sgusuario.nIdSucursal = ' . $idSucursal .
+                        ' OR sgusuario.idLastSucursal = ' . $idSucursal . ')', null, false);
+                else
+                    $this->where('sgusuario.nIdSucursal', $idSucursal);
+            }
+            if ($filtro) $this->like('sgusuario.sNombre', $filtro);
             if ($esSuper === false) $this->where('sgusuario.nIdPerfil <>', '-1');
+            if ($soloActivos) $this->where('sgusuario.cEdoBaja', '0');
             if ($paginado) {
-                return $this->paginate(8);
+                return $this->paginate($paginado);
             } else {
                 return $this->findAll();
             }
@@ -47,7 +57,7 @@ class UsuarioMdl extends Model
     public function getRegistroByLogin($val = false)
     {
 
-        return $this->select('sgusuario.*, sc.*')->where(['sLogin' => $val])
+        return $this->select('sgusuario.*, sc.*')->where(['sLogin' => $val, 'cEdoBaja' => '0'])
             ->join('alsucursal sc', 'sc.nIdSucursal = sgusuario.nIdSucursal', 'left')
             ->join('vtdirentrega de', 'de.nIdCliente = sc.nIdCliente', 'left')
             ->first();
@@ -80,6 +90,10 @@ class UsuarioMdl extends Model
             $this->set('bCambioFechaFactura', $activa);
         } elseif ($tipo == 'PC') {
             $this->set('bPermitirCredito', $activa);
+        } elseif ($tipo == 'CCLI') {
+            $this->set('bCambioCliente', $activa);
+        } elseif ($tipo == 'EME') {
+            $this->set('bEntregaModoENV', $activa);
         }
         $this->where(['nIdUsuario' => $id])
             ->update();

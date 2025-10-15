@@ -20,7 +20,9 @@ $nCont = 0;
                         <th>Id</th>
                         <th>Descripcion</th>
                         <th class="text-center">Abreviatura</th>
-                        <th class="text-center">Precio<br>Tapado</th>
+                        <?php if ($bTapado) : ?>
+                            <th class="text-center">Precio<br>Tapado</th>
+                        <?php endif ?>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -35,7 +37,9 @@ $nCont = 0;
                                 <th scope="row"><?= $r['nIdTipoLista'] ?></th>
                                 <td><?= $r['cNombreTipo'] ?></td>
                                 <td class="text-center"><?= $r['cTipo'] ?></td>
-                                <td class="text-center"><input class="form-check-input" type="checkbox" <?= $r['bImprimirNota'] == '1' ? 'checked' : '' ?> disabled style="opacity:1;"></td>
+                                <?php if ($bTapado) : ?>
+                                    <td class="text-center"><input class="form-check-input" type="checkbox" <?= $r['bImprimirNota'] == '1' ? 'checked' : '' ?> disabled style="opacity:1;"></td>
+                                <?php endif ?>
                                 <td>
                                     <i class="bi bi-pencil-fill text-primary me-3" data-bs-toggle="modal" data-bs-target="#frmModal" data-llamar="tipolista/e/<?= $r['nIdTipoLista'] ?>" style="cursor:pointer;"></i>
                                     <i class="bi bi-trash-fill text-danger me-3 " data-bs-toggle="modal" data-bs-target="#frmModal" data-llamar="tipolista/b/<?= $r['nIdTipoLista'] ?>" style="cursor:pointer;"></i>

@@ -159,6 +159,7 @@
                         'cSinExistencia': appViajeEnvio.arrEnvio[i].cSinExistencia
                     });
                 }
+                miGlobal.toggleBlockPantalla('Agregando Devolucion al Viaje...');
                 $.post('<?= $baseURL ?>', {
                         'idEnvio': appViajeEnvio.idEnvio,
                         'det': arrDet
@@ -166,10 +167,12 @@
                     .done(function(data, textStatus, jqxhr) {
                         $('#cntTablaEnviosBody').html(data);
                         $('#btnSalirDeEnvio').click();
+                        miGlobal.toggleBlockPantalla('');
                     }).fail(function(jqxhr, textStatus, err) {
                         console.log('fail', jqxhr, textStatus, err);
                         appViajeEnvio.procesando = true;
                         $('#btnGuardarEnvio')[0].disabled = true;
+                        miGlobal.toggleBlockPantalla('');
                     });
             },
 

@@ -62,11 +62,15 @@ class ViajeMdl extends Model
                         ->add(new DateInterval('P1D'))
                         ->format('Y-m-d')) . '\'';
                 $wFec .= ' AND enviaje.dtBaja IS NULL';
+                if($aCond['tipo'] == '1') {
+                    $wFec .= ' AND cEstatus <> \'0\'';
+                }
                 $this->where($wFec, null, false);
             }
         }
 
-        if ($paginado)
+        if ($paginado) {
+            $this->orderBy('enviaje.nIdViaje', 'DESC');
             if (isset($aCond['ultimaPagina'])) {
                 $this->paginate($paginado);
                 $nPaginas = $this->pager->getPageCount();
@@ -74,7 +78,7 @@ class ViajeMdl extends Model
             } else {
                 return $this->paginate($paginado);
             }
-        else
+        } else
             return  $this->findAll();
     }
 
@@ -86,7 +90,7 @@ class ViajeMdl extends Model
             false
         )
             ->join('alsucursal b', 'enviaje.nIdSucursal = b.nIdSucursal', 'inner')
-            ->join('enchofer c', 'enviaje.nIdChofer = c.nIdChofer', 'inner');
+            ->join('enchofer c', 'enviaje.nIdChofer = c.nIdChofer', 'left');
         $where = 'enviaje.nIdViaje IN ( ' .
             'SELECT en.nIdViaje ' .
             'FROM enviajeenvio en ' .
@@ -103,13 +107,13 @@ class ViajeMdl extends Model
 
     public function getRegsPorIdEnvio($idEnvio, $idSucursal, $paginado = false)
     {
-        $this->select(
+        $this->select(  
             'enviaje.*, b.sDescripcion AS nomSuc, IFNULL(c.sChofer, \'pendiente\') AS nomChofer' .
                 ', (select count(m.nIdEnvio) as cont from enviajeenvio m where m.nIdViaje = enviaje.nIdViaje and m.nIdEnvio > 0 limit 1) as nEnvios',
             false
         )
             ->join('alsucursal b', 'enviaje.nIdSucursal = b.nIdSucursal', 'inner')
-            ->join('enchofer c', 'enviaje.nIdChofer = c.nIdChofer', 'inner');
+            ->join('enchofer c', 'enviaje.nIdChofer = c.nIdChofer', 'left');
         $where = 'enviaje.nIdViaje IN ( ' .
             'SELECT en.nIdViaje ' .
             'FROM enviajeenvio en ' .

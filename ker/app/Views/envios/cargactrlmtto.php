@@ -92,7 +92,7 @@ $fPesoTotal = 0;
                                     </td>
                                     <td class="text-end">
                                         <div id="peso-<?= $nCont ?>">
-                                            <?= $fPeso / 1000 > 0.49 ? sprintf('%01.2f Tons', $fPeso / 1000) : $fPeso . 'Kg.' ?>
+                                            <?= $fPeso / 1000 > 1.00 ? sprintf('%01.2f Tons', $fPeso / 1000) : $fPeso . 'Kg.' ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -173,7 +173,7 @@ $fPesoTotal = 0;
                     $('#tblcarga input[id^="pesosumar-"]').each(function() {
                         sumax += parseFloat($(this).val().trim() == '' || $(this).val().trim() == '.' ? 0 : $(this).val());
                     });
-                    $("#pesototal").text(sumax / 1000 > 0.49 ? sumax / 1000 + " tons" : sumax + " Kg.");
+                    $("#pesototal").text(sumax / 1000 > 1.00 ? sumax / 1000 + " tons" : sumax + " Kg.");
                     $("#fPesoTotal").val(sumax);
                     let t = $(e.target);
                     let arrId = t.attr("id").split("-");
@@ -193,7 +193,7 @@ $fPesoTotal = 0;
                     console.log(arPeso);
                     console.log(peso);
                     $("#pesosumar-" + arPeso[1] ).val( peso );
-                    $("#peso-" + arPeso[1] ).text( peso / 1000 > 0.49 ? peso / 1000 + " tons" : peso + " Kg." );
+                    $("#peso-" + arPeso[1] ).text( peso / 1000 > 1.00 ? peso / 1000 + " tons" : peso + " Kg." );
                     siguiente(e);
                 };
                 

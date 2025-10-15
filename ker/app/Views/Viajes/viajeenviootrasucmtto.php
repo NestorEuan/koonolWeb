@@ -51,7 +51,7 @@
             <div class="mb-1">
                 <label class="form-sm-label">Sucursal destino del envio:</label>
                 <select id="nIdSucursal" name="nIdSucursal" class="form-select form-select-sm">
-                    <option value="0" selected >Seleccione Sucursal</option>
+                    <option value="0" selected>Seleccione Sucursal</option>
                     <?php foreach ($lstSuc as $f) : ?>
                         <option value="<?= $f['nIdSucursal'] ?>"><?= $f['sDescripcion'] ?></option>
                     <?php endforeach; ?>
@@ -157,8 +157,8 @@
                 // se valida que haya captura
                 let tope = appViajeEnvio.arrEnvio.length;
                 let nCant = 0;
-                for(let i = 0; i < tope; i++) nCant += appViajeEnvio.arrEnvio[i].capturada;
-                if(nCant == 0){
+                for (let i = 0; i < tope; i++) nCant += appViajeEnvio.arrEnvio[i].capturada;
+                if (nCant == 0) {
                     miGlobal.muestraAlerta('No se capturó producto para envio', 'viajesenvio', 1500);
                     return false;
                 }
@@ -172,16 +172,17 @@
                 $('#btnGuardarEnvio')[0].disabled = true;
 
                 for (i = 0; i < tope; i++) {
-                    if(appViajeEnvio.arrEnvio[i].capturada == 0) continue;
+                    if (appViajeEnvio.arrEnvio[i].capturada == 0) continue;
                     arrDet.push({
                         'idArt': appViajeEnvio.arrEnvio[i].nIdArticulo,
                         'capturada': appViajeEnvio.arrEnvio[i].capturada,
                         'cSinExistencia': appViajeEnvio.arrEnvio[i].cSinExistencia
                     });
                 }
+                miGlobal.toggleBlockPantalla('Creando Envio...');
                 $.post('<?= $baseURL ?>', {
                         'idEnvio': appViajeEnvio.idEnvio,
-                        'idSucursal' : $('#nIdSucursal').val(),
+                        'idSucursal': $('#nIdSucursal').val(),
                         'cOrigen': appViajeEnvio.cOrigen,
                         'nIdOrigen': appViajeEnvio.nIdOrigen,
                         'nIdCliente': appViajeEnvio.nIdCliente,
@@ -189,12 +190,25 @@
                         'det': arrDet
                     }, null, 'html')
                     .done(function(data, textStatus, jqxhr) {
-                        $('#cntTablaEnviosBody').html(data);
-                        $('#btnSalirDeEnvio').click();
+                        if (data.substr(0, 4) === 'nooK') {
+                            miGlobal.toggleBlockPantalla('');
+                            if (data.substr(4, 3) == 'msj') {
+                                miGlobal.muestraAlerta(data.substr(7), 'frmModal', 4500);
+                            } else {
+                                miGlobal.muestraAlerta('Error desconocido', 'frmModal', 1500);
+                            }
+                            appViajeEnvio.procesando = false;
+                            $('#btnGuardarEnvio')[0].disabled = false;
+                        } else {
+                            $('#cntTablaEnviosBody').html(data);
+                            $('#btnSalirDeEnvio').click();
+                            miGlobal.toggleBlockPantalla('');
+                        }
                     }).fail(function(jqxhr, textStatus, err) {
                         console.log('fail', jqxhr, textStatus, err);
                         appViajeEnvio.procesando = true;
                         $('#btnGuardarEnvio')[0].disabled = true;
+                        miGlobal.toggleBlockPantalla('');
                     });
             },
 

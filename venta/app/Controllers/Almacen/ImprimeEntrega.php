@@ -11,7 +11,7 @@ class ImprimeEntrega extends BaseController
         $this->validaSesion();
         
         $data = [];
-        if ($this->request->getMethod() == 'post') {
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             $mdlEntrega = new EntregaMdl();
             $r = $mdlEntrega->where('nIdEntrega', $id)->first();
             $msj = '';
