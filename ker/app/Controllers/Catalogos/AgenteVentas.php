@@ -14,29 +14,28 @@ class AgenteVentas extends BaseController
 
         $data['registros'] =  $model->paginate(10);
         $data['pager'] = $model->pager;
-
-        echo view('templates/header', $this->dataMenu);
-        echo view('catalogos/agenteventas', $data);
+        
+        echo view('templates/header',$this->dataMenu);
+        echo view('catalogos/agenteventas',$data);
         echo view('templates/footer', $this->dataMenu);
     }
 
-    public function accion($tipoaccion, $id = 0)
-    {
+    public function accion($tipoaccion, $id = 0){
 
-        $model = new AgenteVentasMdl();
+        $model = new AgenteVentasMdl(); 
 
-        $aTitulo = ['a' => 'Agrega', 'b' => 'Borra', 'e' => 'Edita'];
+        $aTitulo = ['a'=>'Agrega','b'=>'Borra','e'=>'Edita'];
         $stitulo = $aTitulo[$tipoaccion] ?? 'Ver';
 
         $data = [
             'titulo' => $stitulo . ' Agente Ventas',
-            'frmURL' => base_url('agentesventas/' . $tipoaccion . ($id > 0 ? '/' . $id : '')),
+            'frmURL' => base_url('agentesventas/' . $tipoaccion . ($id > 0 ? '/'. $id : '') ),
             'modo' => strtoupper($tipoaccion),
             'id' => $id,
         ];
-
-        if (strtoupper($this->request->getMethod()) === 'POST') {
-            if ($tipoaccion === 'b') {
+        
+        if ($this->request->getMethod() == 'post') {
+            if($tipoaccion==='b'){
                 $model->delete($id);
                 echo 'oK';
                 return;
@@ -46,23 +45,25 @@ class AgenteVentas extends BaseController
                 // guardar datos
                 $r = [
                     'sNombre' => $this->request->getVar('sNombre')
-                ];
-                if ($id > 0) {
+                    ];
+                if($id > 0){
                     $r['nIdAgenteVentas'] = $id;
                 }
                 $model->save($r);
                 echo 'oK';
                 return;
-            } else {
+            }
+            else{
                 $data['error'] = $a['amsj'];
             }
-        } else {
-            if ($tipoaccion !== 'a') {
+        }
+        else{
+            if($tipoaccion !== 'a'){
                 $reg =  $model->getRegistros($id);
                 $data['registro'] = $reg;
             }
         }
-        echo view('catalogos/agenteventasmtto', $data);
+        echo view('catalogos/agenteventasmtto',$data);
     }
 
     public function validaCampos()
@@ -83,3 +84,5 @@ class AgenteVentas extends BaseController
         return false;
     }
 }
+
+?>

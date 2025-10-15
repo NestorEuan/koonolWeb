@@ -10,32 +10,33 @@ class Configuracion extends BaseController
     public function index()
     {
         $this->validaSesion();
-        $model = new ConfiguracionMdl(); 
+        $model = new ConfiguracionMdl();
 
         $data['registros'] =  $model->paginate(8);
         $data['pager'] = $model->pager;
-        
-        echo view('templates/header',$this->dataMenu);
-        echo view('catalogos/configuracion',$data);
+
+        echo view('templates/header', $this->dataMenu);
+        echo view('catalogos/configuracion', $data);
         echo view('templates/footer', $this->dataMenu);
     }
 
-    public function accion($tipoaccion, $id = 0){
+    public function accion($tipoaccion, $id = 0)
+    {
 
-        $model = new ConfiguracionMdl(); 
+        $model = new ConfiguracionMdl();
 
-        $aTitulo = ['a'=>'Agrega','b'=>'Borra','e'=>'Edita'];
+        $aTitulo = ['a' => 'Agrega', 'b' => 'Borra', 'e' => 'Edita'];
         $stitulo = $aTitulo['tipoaccion'] ?? 'Ver';
 
         $data = [
             'titulo' => $stitulo . ' Configuración',
-            'frmURL' => base_url('configuracion/' . $tipoaccion . ($id > 0 ? '/'. $id : '') ),
+            'frmURL' => base_url('configuracion/' . $tipoaccion . ($id > 0 ? '/' . $id : '')),
             'modo' => strtoupper($tipoaccion),
             'id' => $id,
         ];
-        
-        if ($this->request->getMethod() == 'post') {
-            if($tipoaccion==='b'){
+
+        if (strtoupper($this->request->getMethod()) === 'POST') {
+            if ($tipoaccion === 'b') {
                 $model = new ConfiguracionMdl();
                 $model->delete($id);
                 echo 'oK';
@@ -50,27 +51,25 @@ class Configuracion extends BaseController
                     'sDescripcion' => $this->request->getVar('sDescripcion'),
                     'sValor' => $this->request->getVar('sValor'),
                     'fValor' => $this->request->getVar('fValor'),
-                    ];
-                if($id > 0){
+                ];
+                if ($id > 0) {
                     $r['nIdConfiguracion'] = $id;
                 }
                 $model->save($r);
                 echo 'oK';
                 return;
-            }
-            else{
+            } else {
                 $data['error'] = $a['amsj'];
             }
-        }
-        else{
-            if($tipoaccion !== 'a'){
+        } else {
+            if ($tipoaccion !== 'a') {
                 $model = new ConfiguracionMdl();
                 $reg =  $model->getRegistros($id);
                 $data['registro'] = $reg;
             }
         }
         //if( $id > 0 ) $data['registro'] =  $model->getRegistros($id);      
-        echo view('catalogos/configuracionmtto',$data);
+        echo view('catalogos/configuracionmtto', $data);
     }
 
     public function validaCampos()
@@ -110,7 +109,4 @@ class Configuracion extends BaseController
         $reg =  $model->getRegistrosByName($sDescripcion);
         return json_encode(['ok' => '1', 'registro' => $reg]);
     }
-
 }
-
-?>

@@ -55,7 +55,7 @@ class ViajeCtrl extends BaseController
 
         echo view('templates/header', $this->dataMenu);
         echo view('envios/viajesctrl', $data);
-        echo view('templates/footer', $this->dataMenu);
+        echo view('templates/footer');
 
         return;
     }
@@ -115,7 +115,7 @@ class ViajeCtrl extends BaseController
 
         switch ($tipoaccion) {
             case 'i': //Editar, Ver (Consultar)
-                if (strtoupper($this->request->getMethod()) === 'POST') {
+                if ($this->request->getMethod() == 'post') {
                     //Aqui es cuando se va a cerrar la asignación de envios
                     $inventario = new InventarioMdl(); //Modelo para actualizar inventarios
                     $movto = new MovimientoMdl();
@@ -270,7 +270,7 @@ class ViajeCtrl extends BaseController
 
         echo view('templates/header', $this->dataMenu);
         echo view('envios/viajectrlmtto', $data);
-        echo view('templates/footer', $this->dataMenu);
+        echo view('templates/footer');
     }
 
     public function envioctrl($tipoaccion, $idenvio = 0, $idviaje = 0, $idviajeenvio = 0)
@@ -300,7 +300,7 @@ class ViajeCtrl extends BaseController
         $movto = new MovimientoMdl();
         $movtodetail = new MovimientoDetalleMdl();
 
-        if (strtoupper($this->request->getMethod()) === 'POST') {
+        if ($this->request->getMethod() == 'post') {
             switch ($tipoaccion) {
                 case 'd': {
                         /* Obtener el enviajeenvio para saber de que enenvio viene la operación */
@@ -569,7 +569,7 @@ class ViajeCtrl extends BaseController
         $data['clientes'] = $clientes;
         echo view('templates/header', $this->dataMenu);
         echo view('envios/viajectrlimprimir', $data);
-        echo view('templates/footer', $this->dataMenu);
+        echo view('templates/footer');
 
         return;
     }

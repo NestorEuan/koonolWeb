@@ -29,12 +29,14 @@ class ViajeCtrl extends ViajeBase
                 ['Viajes Asignados', '1', ''],
                 ['Viajes En Transito', '2', ''],
                 ['Folio de Viaje', '4', 'Viaje'],
-                ['Folio de Envio', '6', 'Envio']
+                ['Folio de Envio', '6', 'Envio'],
+                ['Todos', '7', '']
             ],
             'registros' => [],
             'pager' => '',
             'fecIni' => '',
-            'fecFin' => ''
+            'fecFin' => '',
+            'esMobil' => $this->request->getUserAgent()->isMobile()
         ];
         $this->leeRegistrosFiltrados($data['registros'], $data['pager'], '1');
 
@@ -53,7 +55,8 @@ class ViajeCtrl extends ViajeBase
             'cNomChofer' => '',
             'fechaProg' => '',
             'sObservacionViaje' => '',
-            'baseURL' => base_url('viajectrl/' . $tipoaccion . '/' . $id)
+            'baseURL' => base_url('viajectrl/' . $tipoaccion . '/' . $id),
+            'esMobil' => $this->request->getUserAgent()->isMobile()
         ];
 
         $aComplementoTitulo = ['s' => 'Salida', 'f' => 'Finaliza', 'c' => 'Consulta'];
@@ -111,10 +114,13 @@ class ViajeCtrl extends ViajeBase
             $data['fechaProg'] = (new DateTime($regViaje['dViaje']))->format('Y-m-d');
             $data['sObservacionViaje'] = $regViaje['sObservacion'];
             $this->cargaEnArrayEnviosDelViaje($id);
+            $cadEnvios = '';
+            if ($tipoaccion == 's') $cadEnvios = $this->validaInventarioViaje($id);
             // se cargan los envios de un viaje
             $_SESSION['vViaje']['idViaje'] = $id;
             $data['registros'] = $this->initArrayEnvios($id, true);
             $data['modoAccionEnEnvio'] = $tipoaccion == 'f' ? 'e' : 'c';
+            $data['inventarioIncompleto'] = $cadEnvios;
             $data['permisoCapDevoluciones'] = isset($this->aPermiso['oPermitirDevol']);
         }
 
@@ -133,7 +139,7 @@ class ViajeCtrl extends ViajeBase
         $data = [
             'baseURL' => base_url('viajectrl/devolucion/' . $tipoaccion . '/' . $idEnvio . ($idViaje ? '/' . $idViaje : ''))
         ];
-        if (strtoupper($this->request->getMethod()) === 'POST') {
+        if ($this->request->getMethod() == 'post') {
             if ($tipoaccion == 'e') {
                 // buscon envios si existe
                 // agrego los que no estan sustituyo los otros
@@ -150,7 +156,8 @@ class ViajeCtrl extends ViajeBase
                     'modoAccionEnEnvio' => $tipoaccion,
                     'tipoAccion' => $_SESSION['vViaje']['tipoAccion'],
                     'permisoCapDevoluciones' => isset($this->aPermiso['oPermitirDevol']),
-                    'idViaje' => $idViaje
+                    'idViaje' => $idViaje,
+                    'esMobil' => $this->request->getUserAgent()->isMobile()
                 ]);
                 return;
             }
@@ -208,10 +215,10 @@ class ViajeCtrl extends ViajeBase
         foreach ($_SESSION['vViaje']['envios'] as $k => $v) {
             if ($v['marca'] == '0') continue;
             $idMovto = $mdlMovimiento->insert([
-                'nIdOrigen' => $idViaje,
-                'cOrigen' => 'viaje',
+                'nIdOrigen' => $k,
+                'cOrigen' => 'envio',
                 'dMovimiento' => $regViaje['dViaje'],
-                'sObservacion' => ''
+                'sObservacion' => $idViaje
             ]);
             // ahora se guarda el detalle del envioViaje
             foreach ($v['lstArt'] as $kd => $vd) {
@@ -306,10 +313,10 @@ class ViajeCtrl extends ViajeBase
             // ahora se guarda el detalle del envioViaje
             if ($nSumDevol > 0) {
                 $idMovto = $mdlMovimiento->insert([
-                    'nIdOrigen' => $idViaje,
-                    'cOrigen' => 'viajedev',
+                    'nIdOrigen' => $k,
+                    'cOrigen' => 'enviodev',
                     'dMovimiento' => $fecMov,
-                    'sObservacion' => ''
+                    'sObservacion' => $idViaje
                 ]);
                 foreach ($v['lstArt'] as $kd => $vd) {
                     //  contiene [idArt, cantAsurtir, cantCapturada, pesoProducto, modoenv, comprometido, cSinExistencia, nIdViajeEnvioDetalle]
@@ -330,39 +337,40 @@ class ViajeCtrl extends ViajeBase
                         ])->update();
                     }
                     // se realiza la microtransaccion del inventario
-                    $mdlInventario->db->transStart();
+                    if ($vd[6] == '0') {
+                        $mdlInventario->db->transStart();
 
-                    $rInv = $mdlInventario->getArticuloSucursal($kd, $this->nIdSucursal, true, true);
-                    $fExistencia = round(floatval($rInv['fExistencia']), 3);
-                    $fExistenciaOri = $fExistencia;
-                    $nSobreComprometido = round(floatval($rInv['fSobreComprometido']), 3);
-                    if ($nSobreComprometido > 0) {
-                        if ($nCant >= $nSobreComprometido)
-                            $nSobreComprometido = 0;
-                        else
-                            $nSobreComprometido -= $nCant;
+                        $rInv = $mdlInventario->getArticuloSucursal($kd, $this->nIdSucursal, true, true);
+                        $fExistencia = round(floatval($rInv['fExistencia']), 3);
+                        $fExistenciaOri = $fExistencia;
+                        $nSobreComprometido = round(floatval($rInv['fSobreComprometido']), 3);
+                        if ($nSobreComprometido > 0) {
+                            if ($nCant >= $nSobreComprometido)
+                                $nSobreComprometido = 0;
+                            else
+                                $nSobreComprometido -= $nCant;
 
-                        $mdlInventario->set('fSobreComprometido', $nSobreComprometido);
-                    }
-                    $fExistencia += $nCant;
-                    $mdlInventario->set('fExistencia', $fExistencia);
-                    $mdlInventario
-                        ->where([
+                            $mdlInventario->set('fSobreComprometido', $nSobreComprometido);
+                        }
+                        $fExistencia += $nCant;
+                        $mdlInventario->set('fExistencia', $fExistencia);
+                        $mdlInventario
+                            ->where([
+                                'nIdSucursal' => $this->nIdSucursal,
+                                'nIdArticulo' => intval($kd)
+                            ])->update();
+
+                        // se agrega el movto de producto
+                        $mdlMovimientoDet->insert([
+                            'nIdMovimiento' => $idMovto,
+                            'nIdArticulo' => $kd,
                             'nIdSucursal' => $this->nIdSucursal,
-                            'nIdArticulo' => intval($kd)
-                        ])->update();
+                            'fCantidad' => $nCant,
+                            'fSaldoInicial' => $fExistenciaOri
+                        ]);
 
-                    // se agrega el movto de producto
-                    $mdlMovimientoDet->insert([
-                        'nIdMovimiento' => $idMovto,
-                        'nIdArticulo' => $kd,
-                        'nIdSucursal' => $this->nIdSucursal,
-                        'fCantidad' => $nCant,
-                        'fSaldoInicial' => $fExistenciaOri
-                    ]);
-
-                    $mdlInventario->db->transComplete();
-
+                        $mdlInventario->db->transComplete();
+                    }
                     // se actualiza el detalle del envio
                     $regEnvDet = $mdlEnvioDetalle->where([
                         'nIdEnvio' => $k,
@@ -410,5 +418,41 @@ class ViajeCtrl extends ViajeBase
             $regsDet[$k]['entregado'] = $regsDet[$k]['fPorRecibir'] - $regsDet[$k]['capturada'];
         }
         return $regsDet;
+    }
+
+    private function validaInventarioViaje($idViaje)
+    {
+        // devuelve un arreglo con los envios que no tienen la suficiente existencia para surtir
+        //   enviajeenvio.
+        $mdlInventario = new InventarioMdl();
+        $mdlViaje = new ViajeMdl();
+        $regs = $mdlViaje->select('enviaje.nIdViaje, enviaje.nIdSucursal, a.nIdEnvio, b.nIdArticulo, b.fPorRecibir, b.cModoEnv, c.cSinExistencia')
+            ->join('enviajeenvio a', 'enviaje.nIdViaje = a.nIdViaje', 'inner')
+            ->join('enviajeenviodetalle b', 'a.nIdViajeEnvio = b.nIdViajeEnvio', 'inner')
+            ->join('alarticulo c', 'b.nIdArticulo = c.nIdArticulo', 'inner')
+            ->where('enviaje.nIdViaje', $idViaje)
+            ->findAll();
+        $arr = [];
+        $msj = '';
+        foreach ($regs as $r) {
+            if ($r['cSinExistencia'] == '1' || $r['cModoEnv'] == '1') continue;
+            $rInv = $mdlInventario->getArticuloSucursal($r['nIdArticulo'], $r['nIdSucursal'], true);
+            if ($rInv == null) {
+                if (!isset($arr[$r['nIdEnvio']])) {
+                    $arr[$r['nIdEnvio']] = [];
+                    $msj .= $r['nIdEnvio'];
+                }
+                $arr[$r['nIdEnvio']][$r['nIdArticulo']] = [0, $r['fPorRecibir']];
+            } else {
+                if ($rInv['fExistencia'] < $r['fPorRecibir']) {
+                    if (!isset($arr[$r['nIdEnvio']])) {
+                        $arr[$r['nIdEnvio']] = [];
+                        $msj .= $r['nIdEnvio'];
+                    }
+                    $arr[$r['nIdEnvio']][$r['nIdArticulo']] = [$rInv['fExistencia'], $r['fPorRecibir']];
+                }
+            }
+        }
+        return $msj;
     }
 }

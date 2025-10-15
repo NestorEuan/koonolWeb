@@ -187,7 +187,7 @@ class Viaje extends ViajeBase
             'baseURL' => base_url('viaje/envio/' . $tipoaccion . '/' . $idEnvio . ($idViaje ? '/' . $idViaje : ''))
         ];
         $view = 'Viajes/viajeenviomtto';
-        if ($this->request->getMethod() == 'post') {
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             if ($tipoaccion == 'e') {
                 // buscon envios si existe
                 // agrego los que no estan sustituyo los otros

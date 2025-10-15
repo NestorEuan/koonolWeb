@@ -166,7 +166,7 @@ class ArtPrecios extends BaseController
     {
         $session = session();
         $data = ['msjError' => ''];
-        if ($this->request->getMethod() == 'post') {
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             $a = $this->validaCamposCarga('carga');
             if ($a === false) {
                 $arch = $this->request->getFile('sArchivo');
@@ -197,7 +197,7 @@ class ArtPrecios extends BaseController
     {
         $session = session();
         $data = [];
-        if ($this->request->getMethod() == 'post') {
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             $a = $this->validaCamposCarga('descarga');
             if ($a === false) {
                 echo 'oK';
@@ -315,9 +315,13 @@ class ArtPrecios extends BaseController
                 }
 
                 $aParaGuardar[] = [
-                    $idAnt, 9999999,
-                    $set['fPrecio'], $set['fPrecioFactura'],
-                    $nContRango, $aCeldas[$fila][3], $set['fPrecioTapado']
+                    $idAnt,
+                    9999999,
+                    $set['fPrecio'],
+                    $set['fPrecioFactura'],
+                    $nContRango,
+                    $aCeldas[$fila][3],
+                    $set['fPrecioTapado']
                 ];
             }
             return $aParaGuardar;
@@ -425,5 +429,25 @@ class ArtPrecios extends BaseController
             }
         }
         return ['ok' => '1'];
+    }
+
+    public function updtprecio($idArticulo, $faPartir, $fMaximo, $fImporte, $aSucursal = false, $aLstPrecio = false) {}
+
+    public function muestraPrecios($id)
+    {
+        $session = session();
+
+        $mdlTipoLst = new TipoListaMdl();
+        $registrosTipoListas = $mdlTipoLst->getRegistros();
+        $data['regTipos'] = $registrosTipoListas;
+        $data['numListas'] = count($registrosTipoListas);
+
+        $model = new PrecioArticuloMdl();
+        $data['registros'] = $model->getlstPrecios($this->nIdSucursal, false, false, false, true, $id);
+
+        $data['idSucursal'] = $this->nIdSucursal;
+
+        echo view('catalogos/artpreciosdisponibles', $data);
+        return;
     }
 }

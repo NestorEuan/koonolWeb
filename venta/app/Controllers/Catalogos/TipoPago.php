@@ -7,10 +7,10 @@ use App\Models\Catalogos\TipoPagoMdl;
 
 class TipoPago extends BaseController
 {
-     public function index()
+    public function index()
     {
         $this->validaSesion();
-        $model = new TipoPagoMdl(); 
+        $model = new TipoPagoMdl();
 
         $data = [
             'registros' => $model->getRegistros(false, true),
@@ -21,16 +21,17 @@ class TipoPago extends BaseController
         echo view('templates/footer', $this->dataMenu);
     }
 
-    public function accion($tipoaccion, $id = 0){
+    public function accion($tipoaccion, $id = 0)
+    {
 
-        $model = new TipoPagoMdl(); 
+        $model = new TipoPagoMdl();
 
-        $aTitulo = ['a'=>'Agrega','b'=>'Borra','e'=>'Edita'];
+        $aTitulo = ['a' => 'Agrega', 'b' => 'Borra', 'e' => 'Edita'];
         $stitulo = $aTitulo['tipoaccion'] ?? 'Ver';
 
         $data = [
             'titulo' => $stitulo . ' Tipos de Pagos',
-            'frmURL' => base_url('TipoPago/' . $tipoaccion . ($id > 0 ? '/'. $id : '') ),
+            'frmURL' => base_url('TipoPago/' . $tipoaccion . ($id > 0 ? '/' . $id : '')),
             'modo' => strtoupper($tipoaccion),
             'id' => $id,
             'param1' => $tipoaccion,
@@ -42,8 +43,8 @@ class TipoPago extends BaseController
                 '3' => 'Para deposito'
             ]
         ];
-        
-        if ($this->request->getMethod() == 'post') {
+
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             if ($tipoaccion === 'b') {
                 $model->delete($id);
                 echo 'oK';
@@ -111,11 +112,9 @@ class TipoPago extends BaseController
     {
         $model = new TipoPagoMdl();
         $reg =  $model->getRegistros($id);
-        if($reg == null) {
+        if ($reg == null) {
             return json_encode(['ok' => '0']);
         }
         return json_encode(['ok' => '1', 'registro' => $reg]);
     }
-
-
 }

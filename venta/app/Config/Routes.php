@@ -53,6 +53,7 @@ $routes->match(['get', 'post'], 'articulo/(:any)', 'Catalogos\Articulo::$1');
 
 $routes->get('existencias', 'Catalogos\Articulo::inventario');
 $routes->match(['get', 'post'], 'existencia/(:num)/(:num)', 'Almacen\Inventario::leeRegistro/$1/$2');
+$routes->match(['get', 'post'], 'existencias/(:any)', 'Almacen\Inventario::$1');
 
 $routes->get('artclasificacion', 'Catalogos\ArtClasificacion::index');
 $routes->match(['get', 'post'], 'artclasificacion/([aeb])(/(:num))?', 'Catalogos\ArtClasificacion::accion/$1/$3');
@@ -93,6 +94,7 @@ $routes->match(['get', 'post'], 'usuario/([aebr])(/(:num))?', 'Seguridad\Usuario
 $routes->match(['get', 'post'], 'usuario/(:any)', 'Seguridad\Usuario::$1');
 
 $routes->get('ventas', 'Ventas\Ventas::index');
+$routes->get('ventasasp', 'Ventas\Ventas::indexasp');
 $routes->match(['get', 'post'], 'ventas/rep/(:segment)', 'Ventas\Reportes\RepResumenVentasCorte::$1');
 $routes->match(['get', 'post'], 'ventas/rep2/(:any)', 'Ventas\Reportes\ResumenMovtoRemision::$1');
 $routes->match(['get', 'post'], 'ventas/rep3/(:any)', 'Ventas\Reportes\VentasporRemision::$1');
@@ -108,6 +110,10 @@ $routes->match(['get', 'post'], 'notacredito/(:any)', 'Ventas\NotaCredito::accio
 $routes->get('movtoCajas', 'Ventas\EsCaja::index');
 $routes->match(['get', 'post'], 'movtoCajas/(a)(/(:num))?', 'Ventas\EsCaja::accion/$1/$3');
 $routes->match(['get', 'post'], 'movtoCajas/(:any)', 'Ventas\EsCaja::$1');
+
+$routes->get('devolucion', 'Ventas\Devolucion::index');
+$routes->match(['get', 'post'], 'devolucion/(:num)', 'Ventas\Devolucion::devolver/$1');
+$routes->match(['get', 'post'], 'devolucion/(:segment)/(:any)', 'Ventas\Devolucion::$1/$2');
 
 $routes->get('pagoAdel', 'Ventas\PagAdel::index');
 $routes->match(['get', 'post'], 'pagoAdel/(a)(/(:num))?', 'Ventas\PagAdel::accion/$1/$3');
@@ -218,6 +224,12 @@ $routes->group('movimiento', ['namespace' => 'App\Controllers\Almacen'], functio
     $routes->post('recepcion/(:segment)/(:num)', 'Movimiento::recepcion/$1/$2');
     $routes->post('recepcioncompra/(:segment)/(:num)', 'Movimiento::recepcioncompra/$1/$2');
 
+    // Cancelar entrada (Ker)
+    $routes->post('(:segment)/cancelar/(:num)', 'Movimiento::cancelaMovimiento/$1/$2');
+
+    // Cancelar entrega (Venta)
+    $routes->post('entregaC/(:num)', 'Movimiento::recepcionCancelarEntrega/$1');
+    
     // Imprimir
     $routes->get('(:segment)/imprime/(:num)', 'Movimiento::imprime/$1/$2');
 });

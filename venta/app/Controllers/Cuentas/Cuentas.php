@@ -133,7 +133,7 @@ class Cuentas extends BaseController
             'id' => $id
         ];
 
-        if ($this->request->getMethod() == 'post') {
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             if ($tipoaccion === 'c') {
                 $model->delete($id);
                 echo 'oK';

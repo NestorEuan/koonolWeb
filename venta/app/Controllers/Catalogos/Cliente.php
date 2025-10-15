@@ -47,7 +47,7 @@ class Cliente extends BaseController
             'usoCfdi' => $mdlUsoCfdi->getRegistros(false, false, null, null, true)
         ];
 
-        if ($this->request->getMethod() == 'post') {
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             if ($tipoaccion === 'b') {
                 $model->delete($id);
 
@@ -92,6 +92,7 @@ class Cliente extends BaseController
                 $data['registro'] =  $model->getRegistros($id);
             } else {
                 $data['deshabilitaListaPrecio'] = true;
+                $data['id'] = 0;
             }
         }
         echo view('catalogos/clientemtto', $data);
@@ -100,14 +101,19 @@ class Cliente extends BaseController
     public function validaCampos()
     {
         $reglas = [
+            'nIdCliente' => 'greater_than_equal_to[0]',
             'sNombre' => 'required|min_length[2]|is_unique[vtcliente.sNombre, nIdCliente, {nIdCliente}]',
             'sRFC' => 'required|min_length[2]|is_unique[vtcliente.sRFC, nIdCliente, {nIdCliente}]',
             'sNombreConstanciaFiscal' => 'required|min_length[2]'
         ];
         $reglasMsj = [
+            'nIdCliente' =>  [
+                'greater_than_equal_to' => 'Id Artículo erróneo'
+            ],
             'sNombre' => [
                 'required'   => 'Falta el nombre',
-                'min_length' => 'Debe tener 8 caracteres como minimo'
+                'min_length' => 'Debe tener 8 caracteres como minimo',
+                'is_unique' => 'El Nombre ya existe para otro cliente'
             ],
             'sRFC' => [
                 'required'   => 'Falta el rfc',
@@ -133,7 +139,6 @@ class Cliente extends BaseController
             return json_encode(['ok' => '0']);
         }
         if ($esc) $reg['sNombre'] = esc($reg['sNombre']);
-        $reg['nID'] = $reg['nIdCliente'];
         return json_encode(['ok' => '1', 'registro' => $reg]);
     }
 
@@ -143,7 +148,6 @@ class Cliente extends BaseController
         $reg =  $model->getRegistrosByName($sDescripcion);
         $t = count($reg);
         for ($i = 0; $i < $t; $i++) {
-            $reg[$i]['nID'] = $reg[$i]['nIdCliente'];
             $reg[$i]['sNombre'] = esc($reg[$i]['sNombre']);
             $reg[$i]['sDireccion'] = esc($reg[$i]['sDireccion']);
         }

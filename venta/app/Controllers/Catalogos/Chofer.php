@@ -10,32 +10,33 @@ class Chofer extends BaseController
     public function index()
     {
         $this->validaSesion();
-        $model = new ChoferMdl(); 
+        $model = new ChoferMdl();
 
         $data['registros'] =  $model->getRegistros(false, 10);
         $data['pager'] = $model->pager;
 
-        echo view('templates/header',$this->dataMenu);
-        echo view('catalogos/choferes',$data);
+        echo view('templates/header', $this->dataMenu);
+        echo view('catalogos/choferes', $data);
         echo view('templates/footer', $this->dataMenu);
     }
 
-    public function accion($tipoaccion, $id = 0){
+    public function accion($tipoaccion, $id = 0)
+    {
 
-        $model = new ChoferMdl(); 
+        $model = new ChoferMdl();
 
-        $aTitulo = ['a'=>'Agrega','b'=>'Borra','e'=>'Edita'];
+        $aTitulo = ['a' => 'Agrega', 'b' => 'Borra', 'e' => 'Edita'];
         $stitulo = $aTitulo['tipoaccion'] ?? 'Ver';
 
         $data = [
             'titulo' => $stitulo . ' Chofer',
-            'frmURL' => base_url('chofer/' . $tipoaccion . ($id > 0 ? '/'. $id : '') ),
+            'frmURL' => base_url('chofer/' . $tipoaccion . ($id > 0 ? '/' . $id : '')),
             'modo' => strtoupper($tipoaccion),
             'id' => $id,
         ];
-        
-        if ($this->request->getMethod() == 'post') {
-            if($tipoaccion==='b'){
+
+        if (strtoupper($this->request->getMethod()) === 'POST') {
+            if ($tipoaccion === 'b') {
                 $model = new ChoferMdl();
                 $model->delete($id);
                 echo 'oK';
@@ -52,27 +53,25 @@ class Chofer extends BaseController
                     'sCelular' => $this->request->getVar('sCelular'),
                     'dVencimientoLic' => $this->request->getVar('dVencimientoLic'),
                     'nIdVehiculo' => $this->request->getVar('nIdVehiculo'),
-                    ];
-                if($id > 0){
+                ];
+                if ($id > 0) {
                     $r['nIdChofer'] = $this->request->getVar('nIdChofer');
                 }
                 $model->save($r);
                 echo 'oK';
                 return;
-            }
-            else{
+            } else {
                 $data['error'] = $a['amsj'];
             }
-        }
-        else{
-            if($tipoaccion !== 'a'){
+        } else {
+            if ($tipoaccion !== 'a') {
                 $model = new ChoferMdl();
                 $reg =  $model->getRegistros($id);
                 $data['registro'] = $reg;
             }
         }
         //if( $id > 0 ) $data['registro'] =  $model->getRegistros($id);      
-        echo view('catalogos/chofermtto',$data);
+        echo view('catalogos/chofermtto', $data);
     }
 
     public function validaCampos()
@@ -107,7 +106,4 @@ class Chofer extends BaseController
         $reg =  $model->getRegistrosByName($sDescripcion);
         return json_encode(['ok' => '1', 'registro' => $reg]);
     }
-
 }
-
-?>

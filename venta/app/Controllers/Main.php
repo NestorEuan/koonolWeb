@@ -43,7 +43,7 @@ class Main extends BaseController
         $r = $this->validaSesion(true);
         if ($r !== false) return $r;
 
-        $permisoAccesoCajero =  false; // isset($this->aPermiso['oAccessCaja']);
+        $permisoAccesoCajero = false; // isset($this->aPermiso['oAccessCaja']);
 
         $dataDesktop = $this->dataMenu;
 

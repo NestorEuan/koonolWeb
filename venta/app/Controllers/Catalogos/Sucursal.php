@@ -41,7 +41,7 @@ class Sucursal extends BaseController
             'id' => $id,
         ];
 
-        if ($this->request->getMethod() == 'post') {
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             if ($tipoaccion === 'b') {
                 $model = new SucursalMdl();
                 $model->delete($id);
@@ -70,7 +70,7 @@ class Sucursal extends BaseController
                 } else {
                     $r['nIdSucursal'] = $id;
                 }
-               
+
                 $model = new SucursalMdl();
                 $model->save($r);
 

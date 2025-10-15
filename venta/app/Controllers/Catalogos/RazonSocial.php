@@ -8,10 +8,10 @@ use App\Models\Catalogos\RegimenFiscalMdl;
 
 class RazonSocial extends BaseController
 {
-     public function index()
+    public function index()
     {
         $this->validaSesion();
-        $model = new RazonSocialMdl(); 
+        $model = new RazonSocialMdl();
 
         $data = [
             'registros' => $model->getRegistros(false, 10),
@@ -22,23 +22,24 @@ class RazonSocial extends BaseController
         echo view('templates/footer', $this->dataMenu);
     }
 
-    public function accion($tipoaccion, $id = 0){
+    public function accion($tipoaccion, $id = 0)
+    {
 
-        $model = new RazonSocialMdl(); 
+        $model = new RazonSocialMdl();
 
-        $aTitulo = ['a'=>'Agrega','b'=>'Borra','e'=>'Edita'];
+        $aTitulo = ['a' => 'Agrega', 'b' => 'Borra', 'e' => 'Edita'];
         $stitulo = $aTitulo[$tipoaccion] ?? 'Ver';
 
         $data = [
             'titulo' => $stitulo . ' Razon Social Para Timbrar',
-            'frmURL' => base_url('razonsocial/' . $tipoaccion . ($id > 0 ? '/'. $id : '') ),
+            'frmURL' => base_url('razonsocial/' . $tipoaccion . ($id > 0 ? '/' . $id : '')),
             'modo' => strtoupper($tipoaccion),
             'id' => $id,
             'param1' => $tipoaccion,
             'param2' => $id
         ];
-        
-        if ($this->request->getMethod() == 'post') {
+
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             if ($tipoaccion === 'b') {
                 $model->delete($id);
                 echo 'oK';

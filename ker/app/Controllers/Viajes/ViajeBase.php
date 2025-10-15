@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\Almacen\InventarioMdl;
 use App\Models\Ventas\VentasMdl;
 use App\Models\Viajes\EnvioDetalleMdl;
+use App\Models\Viajes\EnvioDireccionMdl;
 use App\Models\Viajes\EnvioMdl;
 use App\Models\Viajes\ViajeEnvioDetalleMdl;
 use App\Models\Viajes\ViajeEnvioMdl;
@@ -18,13 +19,14 @@ class  ViajeBase extends BaseController
     {
         $opcion = $this->request->getVar('inputGroupSelectOpciones') ?? $opcionInicial;
         $aCond = [
-            'opc' => $opcion
+            'opc' => $opcion,
+            'tipo' => $opcionInicial        // '1' - ctrlviaJE, '0'- viaje
         ];
         $mdlViaje = new ViajeMdl();
         if ($opcion == '0' || $opcion == '1' || $opcion == '2') {
             $regs = $mdlViaje->getRegistros(
                 false,
-                ($this->nIdUsuario == '1' || isset($this->aPermiso['oVerTodasSuc'])) ? false : $this->nIdSucursal,
+                $this->nIdSucursal,
                 8,
                 $aCond
             );
@@ -34,7 +36,7 @@ class  ViajeBase extends BaseController
             $aCond['dFin'] = $f[1]->format('Y-m-d');
             $regs = $mdlViaje->getRegistros(
                 false,
-                ($this->nIdUsuario == '1' || isset($this->aPermiso['oVerTodasSuc'])) ? false : $this->nIdSucursal,
+                $this->nIdSucursal,
                 8,
                 $aCond
             );
@@ -43,7 +45,7 @@ class  ViajeBase extends BaseController
         } elseif ($opcion == '4') {
             $regs = $mdlViaje->getRegistros(
                 $this->request->getVar('nFolio'),
-                ($this->nIdUsuario == '1' || isset($this->aPermiso['oVerTodasSuc'])) ? false : $this->nIdSucursal,
+                $this->nIdSucursal,
                 8
             );
         } elseif ($opcion == '5') {
@@ -62,6 +64,7 @@ class  ViajeBase extends BaseController
 
     protected function initArrayEnvios($idViaje = false, $soloParaConsulta = false)
     {
+        $mdlEnvioDireccion = new EnvioDireccionMdl();
         $mdlEnvio = new EnvioMdl();
         $regs = $mdlEnvio->getEnviosPendientesParaViaje(false, $this->nIdSucursal, $idViaje, $soloParaConsulta);
         $regDest = [];
@@ -89,6 +92,15 @@ class  ViajeBase extends BaseController
                     $regDest[$k]['peso'] = round($nSumPeso, 3);
                     $regDest[$k]['fechas'] = $this->formateaFechas($r);
                     $_SESSION['vViaje']['envios'][$k]['marca'] = '1';
+                    // se inicializa la direccion de entrega
+                    $direccionEnvio = $this->buscaDireccionDeEnvio($mdlEnvioDireccion, $r['nIdEnvio'], $r['nIdDirEntrega']);
+                    if ($direccionEnvio !== false) {
+                        $regDest[$r['nIdEnvio']]['sEnvEntrega'] = $direccionEnvio[0] ?? '';
+                        $regDest[$r['nIdEnvio']]['sEnvDireccion'] = $direccionEnvio[1] ?? '';
+                        $regDest[$r['nIdEnvio']]['sEnvColonia'] = $direccionEnvio[2] ?? '';
+                        $regDest[$r['nIdEnvio']]['sEnvTelefono'] = $direccionEnvio[3] ?? '';
+                        $regDest[$r['nIdEnvio']]['sEnvReferencia'] = $direccionEnvio[4] ?? '';
+                    }
                     break;
                 }
             }
@@ -97,8 +109,41 @@ class  ViajeBase extends BaseController
             if ($r['marca'] == '1') continue;
             $regDest[$r['nIdEnvio']] = $r;
             $regDest[$r['nIdEnvio']]['fechas'] = $this->formateaFechas($r);
+            // se inicializa la direccion de entrega
+            $direccionEnvio = $this->buscaDireccionDeEnvio($mdlEnvioDireccion, $r['nIdEnvio'], $r['nIdDirEntrega']);
+            if ($direccionEnvio !== false) {
+                $regDest[$r['nIdEnvio']]['sEnvEntrega'] = $direccionEnvio[0];
+                $regDest[$r['nIdEnvio']]['sEnvDireccion'] = $direccionEnvio[1] ?? '';
+                $regDest[$r['nIdEnvio']]['sEnvColonia'] = $direccionEnvio[2] ?? '';
+                $regDest[$r['nIdEnvio']]['sEnvTelefono'] = $direccionEnvio[3] ?? '';
+                $regDest[$r['nIdEnvio']]['sEnvReferencia'] = $direccionEnvio[4] ?? '';
+            }
         }
         return $regDest;
+    }
+
+    protected function buscaDireccionDeEnvio(EnvioDireccionMdl &$mdlEnvioDireccion, $idEnvio, $idDirEntrega)
+    {
+        $aRet = false;
+        $rTmp = $mdlEnvioDireccion->where([
+            'nIdDirEntrega' => $idDirEntrega,
+            'nIdEnvio <=' => $idEnvio
+        ])->orderBy('nIdDirEntrega, nIdEnvio DESC')
+            ->limit(1)->first();
+        if ($rTmp != null) {
+            $tok = strtok($rTmp['sDirecEnvio'], '||');
+            $a = [];
+            $nContTok = 0;
+            $nInd = -1;
+            while ($tok !== false) {
+                $nContTok++;
+                $nInd++;
+                $a[$nInd] = $tok;
+                $tok = strtok('||');
+            }
+            $aRet = $a;
+        }
+        return $aRet;
     }
 
     protected function cargaEnArrayEnviosDelViaje($idViaje)
@@ -133,7 +178,7 @@ class  ViajeBase extends BaseController
                 $r['nIdViajeEnvioDetalle'],
                 0
             ];
-            if($r['idDevolucion'] != '0') $_SESSION['vViaje']['envios'][$idenvio]['conDevolucion'] = '1';
+            if ($r['idDevolucion'] != '0') $_SESSION['vViaje']['envios'][$idenvio]['conDevolucion'] = '1';
         }
     }
 
@@ -172,25 +217,42 @@ class  ViajeBase extends BaseController
         $mdlInventario->db->transStart();
 
         $rInv = $mdlInventario->getArticuloSucursal($idArt, $this->nIdSucursal, true, true);
-        $disponibleEnSuc =  round(floatval($rInv['fExistencia']), 3) - round(floatval($rInv['fComprometido']), 3);
-        $nSobreComprometido = round(floatval($rInv['fSobreComprometido']), 3);
-        if ($disponibleEnSuc < $nCant) {
-            $nComprometido = round(floatval($rInv['fExistencia']), 3);
-            $nSobreComprometido += round($nCant - $disponibleEnSuc, 3);
-            $mdlInventario->set('fComprometido', $nComprometido)
-                ->set('fSobreComprometido', $nSobreComprometido);
-        } else {
-            $nComprometido = round(floatval($rInv['fComprometido']), 3) + $nCant;
-            $mdlInventario->set('fComprometido', $nComprometido);
+        if ($rInv !== null) {    //  si existe el producto en el inventario
+            if($rInv['fComprometido'] < 0) $rInv['fComprometido'] = 0;
+            if($rInv['fSobreComprometido'] < 0) $rInv['fSobreComprometido'] = 0;
+            $disponibleEnSuc =  round(floatval($rInv['fExistencia']), 3) - round(floatval($rInv['fComprometido']), 3);
+            $nSobreComprometido = round(floatval($rInv['fSobreComprometido']), 3);
+            if ($disponibleEnSuc < $nCant) {
+                $nComprometido = round(floatval($rInv['fExistencia']), 3);
+                $nSobreComprometido += round($nCant - $disponibleEnSuc, 3);
+                $mdlInventario->set('fComprometido', $nComprometido)
+                    ->set('fSobreComprometido', $nSobreComprometido);
+            } else {
+                $nComprometido = round(floatval($rInv['fComprometido']), 3) + $nCant;
+                $mdlInventario->set('fComprometido', $nComprometido);
+            }
+            // comprometemos el inventario
+            $mdlInventario
+                ->where([
+                    'nIdSucursal' => $this->nIdSucursal,
+                    'nIdArticulo' => intval($idArt)
+                ])->update();
         }
-        // comprometemos el inventario
-        $mdlInventario
-            ->where([
-                'nIdSucursal' => $this->nIdSucursal,
-                'nIdArticulo' => intval($idArt)
-            ])->update();
-
-
         $mdlInventario->db->transComplete();
+    }
+
+    public function refrescaDetalleEnvios($idViaje = false, $tipoaccion)
+    {
+        $this->validaSesion();
+
+        $registros = $this->initArrayEnvios($idViaje);
+        echo view('Viajes/viajemttodetalle', [
+            'registros' => $registros,
+            'tipoAccion' => $_SESSION['vViaje']['tipoAccion'],
+            'modoAccionEnEnvio' => $tipoaccion,
+            'permisoCapDevoluciones' => false,
+            'idViaje' => ($idViaje ? $idViaje : '')
+        ]);
+        return;
     }
 }

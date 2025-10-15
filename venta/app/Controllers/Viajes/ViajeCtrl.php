@@ -61,7 +61,7 @@ class ViajeCtrl extends ViajeBase
 
         $aComplementoTitulo = ['s' => 'Salida', 'f' => 'Finaliza', 'c' => 'Consulta'];
 
-        if ($this->request->getMethod() == 'post') {
+        if (strtoupper($this->request->getMethod()) === 'POST') {
             if ($tipoaccion == 's') $this->actualizaCargaViaje($id);
             if ($tipoaccion == 'f') $this->actualizaFinalizaViaje($id);
 

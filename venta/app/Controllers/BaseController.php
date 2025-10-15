@@ -7,8 +7,9 @@ use CodeIgniter\HTTP\CLIRequest;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-use DateTime;
 use Psr\Log\LoggerInterface;
+
+use DateTime;
 
 /**
  * Class BaseController
@@ -34,9 +35,9 @@ abstract class BaseController extends Controller
      * class instantiation. These helpers will be available
      * to all other controllers that extend BaseController.
      *
-     * @var array
+     * @var list<string>
      */
-    protected $helpers = ['cookie', 'vistas', 'form'];
+    protected $helpers = ['cookie', 'vistas', 'form', 'filesystem'];
 
     protected $nIdUsuario;
     protected $nIdSucursal;
@@ -51,9 +52,16 @@ abstract class BaseController extends Controller
     protected $aPermiso;
     protected $aInfoSis;
     protected $sNombreUsuario;
+    protected $nIdPerfil;
 
     /**
-     * Constructor.
+     * Be sure to declare properties for any property fetch you initialized.
+     * The creation of dynamic property is deprecated in PHP 8.2.
+     */
+    // protected $session;
+
+    /**
+     * @return void
      */
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
@@ -61,6 +69,8 @@ abstract class BaseController extends Controller
         parent::initController($request, $response, $logger);
 
         // Preload any models, libraries, etc, here.
+
+        // E.g.: $this->session = \Config\Services::session();
         $mdlInfoSistem = new \App\Models\Catalogos\SistemInfoMdl();
         $this->aInfoSis = $mdlInfoSistem->getRegistro();
 
@@ -72,6 +82,7 @@ abstract class BaseController extends Controller
         $this->sSucursal = get_cookie('sSucursal');
         $this->sLogin = get_cookie('sLogin');
         $this->sNombreUsuario = get_cookie('sNombre');
+        $this->nIdPerfil = get_cookie('nIdPerfil');
         if ($this->nIdUsuario === null || $this->nIdUsuario == '') {
             $this->nIdUsuario = null;
             $this->nIdSucursal = null;
@@ -90,7 +101,7 @@ abstract class BaseController extends Controller
         }
     }
 
-    protected function validaSesion($directo = false)
+    protected function validaSesion($directo = false, $valPermiso = "", $retJson = false)
     {
         $salir = false;
         if ($this->nIdUsuario === null) {
@@ -111,31 +122,67 @@ abstract class BaseController extends Controller
                 ];
                 $salir = true;
             }
+            if ($valPermiso <> "" and $this->nIdPerfil > 0) {
+                $mdlPermisoPerfil = new \App\Models\Seguridad\PermisoPerfilMdl();
+                $permisoPerfil = $mdlPermisoPerfil->getPermisos( intval( $this->nIdPerfil ), $valPermiso);
+                if ($permisoPerfil == null) {
+                    $data = [
+                        'msjError' => 'No tiene permiso para este módulo',
+                        'titulo' => 'AVISO',
+                    ];
+                    if($retJson) {
+                        echo json_encode([
+                            'html' => view('mensajemodal', $data),
+                        ]);
+                    } else {
+                        echo view('templates/header', $this->dataMenu ?? []);
+                        echo view('templates/mensajemodal', $data);
+                        echo view('templates/footer', $this->dataMenu);
+                    }
+                    exit;
+                }
+            }
         }
-        if($salir) {
-            if($directo) {
+        if ($salir) {
+            if ($directo) {
                 return redirect()->to(base_url("/login"));
             } else {
-                echo view('templates/header', $this->dataMenu ?? []);
-                echo view('templates/mensajemodal', $data);
-                echo view('templates/footer', $this->dataMenu);
+                if($retJson) {
+                    echo json_encode([
+                        'html' => view('mensajemodal', $data),
+                    ]);
+                } else {
+                    echo view('templates/header', $this->dataMenu ?? []);
+                    echo view('templates/mensajemodal', $data);
+                    echo view('templates/footer', $this->dataMenu);
+                }
                 exit;
             }
         }
         return false;
     }
 
-    protected function validaTurnoCorte()
+    protected function validaTurnoCorte($esVentas = false)
     {
+        $permisoAccesoCajero = isset($this->aPermiso['oAccessCaja']);
         $mdlCorte = new \App\Models\Ventas\CorteCajaMdl();
         $r = $mdlCorte->getIdCorteActivo($this->nIdUsuario, $this->nIdSucursal);
+        unset($_SESSION['nuevoCorteActivaCapID']);
+        if ($esVentas)
+            $_SESSION['desdeVentas'] = true;
+        else
+            unset($_SESSION['desdeVentas']);
         if ($r == null || $r['dtCierre'] !== null) {
+            $_SESSION['nuevoCorteCajero'] = true;
+            if ($permisoAccesoCajero) {
+                return redirect()->to(base_url('cortecaja'));
+            }
             $data = [
                 'msjError' => 'El usuario no ha iniciado un turno en Corte de Caja',
                 'titulo' => 'AVISO',
-                'nuevoCorteCajero' => '1'
+                'nuevoCorteCajero' => '1',
+                'desdeVentas' => $esVentas
             ];
-            $_SESSION['nuevoCorteCajero'] = true;
             echo view('templates/header', $this->dataMenu);
             echo view('templates/mensajemodal', $data);
             echo view('templates/footer', $this->dataMenu);
@@ -143,7 +190,14 @@ abstract class BaseController extends Controller
         }
         $lastFecApertura = new DateTime(substr($r['dtApertura'], 0, 10));
         $fecActual = new DateTime();
-        if($lastFecApertura->format('Ymd') != $fecActual->format('Ymd')) {
+        if ($lastFecApertura->format('Ymd') != $fecActual->format('Ymd')) {
+            if ($permisoAccesoCajero) {
+                $_SESSION['nuevoCorteCajero'] = true;
+                $_SESSION['nuevoCorteActivaCapID'] = $r['nIdCorte'];
+                return redirect()->to(base_url('cortecaja'));
+            } else {
+                $_SESSION['nuevoCorteCajero'] = false;
+            }
             $data = [
                 'msjError' => 'Debe cerrar el Corte de Caja anterior.',
                 'titulo' => 'AVISO',
@@ -154,11 +208,11 @@ abstract class BaseController extends Controller
             echo view('templates/mensajemodal', $data);
             echo view('templates/footer', $this->dataMenu);
             exit;
-        } 
-
+        }
+        return false;
     }
-    
-        protected function ExportaCsv( $nomArchivo, $objArray)
+
+    protected function ExportaCsv( $nomArchivo, $objArray)
     {
         $dbutil = \Config\Database::utils();
 
@@ -172,6 +226,7 @@ abstract class BaseController extends Controller
     
         $datatxt = '';
         $filehndl = fopen($fName,'w');
+        fputs( $filehndl, chr(0xEF) . chr(0xBB) . chr(0xBF) );
         foreach($objArray as $item)
         {
             //$datatxt .= $item;
@@ -188,5 +243,4 @@ abstract class BaseController extends Controller
         //write_file($fName, $datatxt);
         // echo $this->dbutil->csv_from_result($objArray);
     }
-
 }

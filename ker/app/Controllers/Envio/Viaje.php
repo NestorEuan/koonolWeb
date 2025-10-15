@@ -55,166 +55,26 @@ class Viaje extends BaseController
 
         echo view('templates/header', $this->dataMenu);
         echo view('envios/viajes', $data);
-        echo view('templates/footer', $this->dataMenu);
+        echo view('templates/footer');
 
         return;
     }
 
     public function accion($tipoaccion, $id = 0)
     {
-        $masterMdl = new ViajeMdl();
-        $choferMdl = new ChoferMdl();
-        $enviosMdl = new EnvioMdl();
-
         session();
         $this->validaSesion();
         $operacion = 'viaje';
         $aTitulo = ['a' => 'Agregar', 'b' => 'Borrar', 'e' => 'Editar', 'c' => 'Carga'];
-        $sTituloEvento = $aTitulo[$tipoaccion] ?? 'Ver';
-        $aKeys = ['viaje' => ['nIdViaje', 'dViaje', 'Nuevo viaje']];
+        $stituloevento = $aTitulo[$tipoaccion] ?? 'Ver';
+        $aKeys = [
+            'viaje'  => ['nIdViaje', 'dViaje', 'Asignar viajes'],
+        ];
         $masterkey = $aKeys[$operacion][0];
         $datefld = $aKeys[$operacion][1];
-        $sTituloOperacion = $aKeys[$operacion][2];
-        $titulo = $sTituloEvento . ' - ' . $sTituloOperacion;
+        $stitulooperacion = $aKeys[$operacion][2];
+        $titulo = $stituloevento . ' ' . $stitulooperacion;
 
-        if (!isset($_SESSION[$operacion]) && $tipoaccion === 'a') {
-            $this->initVarSesion($operacion, $masterkey);
-            $registros = $enviosMdl->getViajePendiente($this->nIdSucursal);
-            $_SESSION[$operacion]['envios'] = $registros;
-        }
-
-        $regChofer = $choferMdl->getRegistros();
-        $_SESSION[$operacion]['regChofer'] = $regChofer;
-
-        $frmURL = "viaje/$tipoaccion" . ($id > 0 ? '/' . $id : '');
-        $data =
-            [
-                'id' => $id,
-                'titulo' => $titulo,
-                'operacion' => $operacion,
-                'tipoaccion' => $tipoaccion,
-                'modo' => strtoupper($tipoaccion),
-                'sSucursal' => $this->sSucursal,
-                'frmURL' => $frmURL, //('viaje/' . $operacion . '/'. $tipoaccion . ($id > 0 ? '/'. $id : '') ),
-                'regChofer' => $regChofer,
-            ];
-
-        if (strtoupper($this->request->getMethod()) === 'POST') {
-            if ($tipoaccion === 'a') {
-                //Crear viaje
-                $mdlViajeEnvio = new ViajeEnvioMdl();
-                $mdlViajeEnvioDetalle = new ViajeEnvioDetalleMdl();
-                $enviodetalle = new EnvioDetalleMdl();
-
-                $_SESSION[$operacion]['registro']["$datefld"] = $this->request->getVar("$datefld");
-                $_SESSION[$operacion]['registro']["nIdSucursal"] = $this->nIdSucursal;
-                $_SESSION[$operacion]['registro']["nIdChofer"] = $this->request->getVar('nIdChofer');
-                $_SESSION[$operacion]['registro']["sObservacion"] = $this->request->getVar('sObservacion');
-                $r = [
-                    "$datefld" => $_SESSION[$operacion]['registro']["$datefld"],
-                    'nIdSucursal' => $_SESSION[$operacion]['registro']['nIdSucursal'],
-                    'nIdChofer' => $_SESSION[$operacion]['registro']['nIdChofer'],
-                    'sObservacion' => $_SESSION[$operacion]['registro']['sObservacion'],
-                    'cEstatus' => '0',
-                ];
-                $master = new ViajeMdl();
-
-                $master->save($r);
-                $inserted = $master->insertID();
-                $_SESSION[$operacion]['registro']['nIdViaje'] = $inserted;
-                foreach ($_SESSION[$operacion]['envios'] as $envItem) {
-                    if ($envItem['selected'] <> '0')
-                        continue;
-                    //crear viajeenvio
-                    $rv = [
-                        'nIdEnvio' => $envItem['nIdEnvio'],
-                        'nIdViaje' => $inserted,
-                        'cEstatus' => '1', //Proceso de carga
-                        'sObservacion' => $envItem['sObservacion'],
-                        'fPeso' => $envItem['fPeso'],
-                    ];
-                    $mdlViajeEnvio->save($rv);
-                    $idViajeEnvio = $mdlViajeEnvio->insertID();
-                    $fSolicitado = 0;
-                    $fXEnviar = 0;
-                    foreach ($envItem['articulos'] as $artItem) {
-                        $fSolicitado += $artItem['fCantidad'];
-                        if ($artItem['fXRecibir'] == 0) continue;
-                        $fXEnviar += ($artItem['fRecibido'] + $artItem['fXRecibir']);
-                        $rvd = [
-                            'nIdViajeEnvio' => $idViajeEnvio,
-                            'nIdArticulo' => $artItem['nIdArticulo'],
-                            'fPorRecibir' => $artItem['fXRecibir'],
-                            'fPeso' => $artItem['fPeso'],
-                        ];
-                        $mdlViajeEnvioDetalle->save($rvd);
-                        $enviodetalle->updtRecibidos($artItem['nIdEnvioDetalle'], $artItem['fXRecibir']);
-                    }
-                    if ($envItem['cOrigen'] === 'traspaso')
-                        $origenMdl = new TraspasoMdl();
-                    else
-                        $origenMdl = new VentasMdl();
-                    //actualizar estado de venta o traspaso
-                    $regEnv = [
-                        'nIdEnvio' => $envItem['nIdEnvio'],
-                        'cEstatus' => $fSolicitado <> $fXEnviar ? '4' : '5',
-                    ];
-                    $envMdl = new EnvioMdl();
-
-                    $envMdl->set('cEstatus', $regEnv['cEstatus'])
-                        ->where('nIdEnvio', $regEnv['nIdEnvio'])
-                        ->update();
-                }
-                unset($_SESSION[$operacion]);
-                //$this->initVarSesion($operacion, $masterkey);
-                return redirect()->to(base_url("viaje/"));
-            }
-        } else {
-            if ($tipoaccion !== 'a') {
-            } else {
-                $registro = $_SESSION[$operacion]['registro'];
-                $registros = $_SESSION[$operacion]['envios'];
-                foreach ($registros as &$rg) {
-                    if (!array_key_exists('selected', $rg))
-                        $rg['selected'] = '-1';
-                }
-                $_SESSION[$operacion]['envios'] = $registros;
-            }
-        }
-
-        $data['registro'] = $registro;
-        $data['registros'] = $registros;
-
-        echo view('templates/header', $this->dataMenu);
-        echo view('envios/viajemtto', $data);
-        echo view('templates/footer', $this->dataMenu);
-    }
-
-    public function updtviaje()
-    {
-        session();
-        $this->validaSesion();
-        if (strtoupper($this->request->getMethod()) === 'POST') {
-            $_SESSION['viaje']['registro']['dViaje'] = $this->request->getVar("dViaje");
-            $_SESSION['viaje']['registro']['nIdChofer'] = $this->request->getVar("nIdChofer");
-            $_SESSION['viaje']['registro']['sObservacion'] = $this->request->getVar("sObservacion");
-        }
-    }
-
-    public function accion_Old($tipoaccion, $id = 0)
-    {
-        if (1) {
-            session();
-            $this->validaSesion();
-            $operacion = 'viaje';
-            $aTitulo = ['a' => 'Agregar', 'b' => 'Borrar', 'e' => 'Editar', 'c' => 'Carga'];
-            $stituloevento = $aTitulo[$tipoaccion] ?? 'Ver';
-            $aKeys = ['viaje'  => ['nIdViaje', 'dViaje', 'Asignar viajes'],];
-            $masterkey = $aKeys[$operacion][0];
-            $datefld = $aKeys[$operacion][1];
-            $stitulooperacion = $aKeys[$operacion][2];
-            $titulo = $stituloevento . ' ' . $stitulooperacion;
-        }
         $master = new ViajeMdl();
         $chofer = new ChoferMdl();
 
@@ -246,7 +106,7 @@ class Viaje extends BaseController
 
         switch ($tipoaccion) {
             case 'a': //Asignar el chofer y la fecha, para programar los envios
-                if (strtoupper($this->request->getMethod()) === 'POST') {
+                if ($this->request->getMethod() == 'post') {
                     //Crear viaje
                     $mdlViajeEnvio = new ViajeEnvioMdl();
                     $mdlViajeEnvioDetalle = new ViajeEnvioDetalleMdl();
@@ -283,7 +143,7 @@ class Viaje extends BaseController
                         $fXEnviar = 0;
                         foreach ($envItem['articulos'] as $artItem) {
                             $fSolicitado += $artItem['fCantidad'];
-                            if ($artItem['fXRecibir'] == 0) continue;
+                            if( $artItem['fXRecibir'] == 0) continue;
                             $fXEnviar += ($artItem['fRecibido'] + $artItem['fXRecibir']);
                             $rvd = [
                                 'nIdViajeEnvio' => $idViajeEnvio,
@@ -308,6 +168,7 @@ class Viaje extends BaseController
                         $envMdl->set('cEstatus', $regEnv['cEstatus'])
                             ->where('nIdEnvio', $regEnv['nIdEnvio'])
                             ->update();
+
                     }
                     unset($_SESSION[$operacion]);
                     //$this->initVarSesion($operacion, $masterkey);
@@ -356,7 +217,7 @@ class Viaje extends BaseController
                 return redirect()->to(base_url("viaje/imprime/$id"));
                 break;
             case 't':
-                if (strtoupper($this->request->getMethod()) === 'POST') {
+                if ($this->request->getMethod() == 'post') {
                     //Aqui es cuando se va a cerrar la asignación de envios
                     $inventario = new InventarioMdl(); //Modelo para actualizar inventarios
                     $movto = new MovimientoMdl();
@@ -478,7 +339,7 @@ class Viaje extends BaseController
 
         echo view('templates/header', $this->dataMenu);
         echo view('envios/viajemtto', $data);
-        echo view('templates/footer', $this->dataMenu);
+        echo view('templates/footer');
     }
 
     public function envio($tipoaccion, $idenvio = 0, $idviaje = 0, $idviajeenvio = 0)
@@ -504,7 +365,7 @@ class Viaje extends BaseController
 
         $mdlEnvioDevolucion = new ViajeEnvioDevolucionMdl();
 
-        if (strtoupper($this->request->getMethod()) === 'POST') {
+        if ($this->request->getMethod() == 'post') {
             switch ($tipoaccion) {
                 case 'd': {
                         /* Obtener el enviajeenvio para saber de que enenvio viene la operación */
@@ -643,30 +504,14 @@ class Viaje extends BaseController
             if (isset($_SESSION['viaje']['envios'][$needleEnvio]['articulos'])) {
                 $rd = $_SESSION['viaje']['envios'][$needleEnvio]['articulos'];
                 $r = $_SESSION['viaje']['envios'][$needleEnvio];
-                //$myaccion = 'nohagasnada';
+                $myaccion = 'nohagasnada';
             }            /*&& $_SESSION['viaje']['envios'][$needleEnvio]['nIdViaje'] == $idviaje*/
         } else {
             if ($tipoaccion === 'e') $myaccion = 'a';
-            $rTmp = $envio->getViajePendiente(false, $idenvio);
-            if (!isset($r))
-                $r = $rTmp;
-            else
-                $r = $_SESSION[$operacion]['registro'];
         }
         switch ($myaccion) {
             case 'a':
-                $rdTemp = $enviodetalle->getRegsExistenciaYEnviados(intval($idenvio), $this->nIdSucursal, 0);
-                if (!isset($rd))
-                    $rd = $rdTemp;
-                else {
-                    for ($iCnt = 0; $iCnt < count($rd); $iCnt++) {
-                        $rd[$iCnt]['fExistencia'] = $rdTemp[$iCnt]['fExistencia'];
-                        $rd[$iCnt]['fComprometido'] = $rdTemp[$iCnt]['fComprometido'];
-                        $rd[$iCnt]['fPorRecibir'] = $rdTemp[$iCnt]['fPorRecibir'];
-                    }
-                    /*
-                    */
-                }
+                $rd = $enviodetalle->getRegsExistenciaYEnviados(intval($idenvio), $this->nIdSucursal, 0);
                 break;
             case 'd':
                 //$rd = $mdlViajeEnvio->getRegsEnviados(intval($idenvio), $this->nIdSucursal);
@@ -680,6 +525,7 @@ class Viaje extends BaseController
                 $rd = $mdlViajeEnvio->getRegsEnviados($idviajeenvio, $this->nIdSucursal);
                 break;
         }
+        $r = $envio->getViajePendiente(false, $idenvio);
         $cl =
             [
                 'nIdCliente' => $r['nIdCliente'],
@@ -789,10 +635,9 @@ class Viaje extends BaseController
         $data['registros'] = $regs;
         $data['articulos'] = $arts;
         $data['clientes'] = $clientes;
-        $data['aInfoSis'] = $this->dataMenu['aInfoSis'];
         echo view('templates/header', $this->dataMenu);
         echo view('envios/viajeimprimir', $data);
-        echo view('templates/footer', $this->dataMenu);
+        echo view('templates/footer');
 
         return;
     }
